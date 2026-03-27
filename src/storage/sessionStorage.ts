@@ -1,0 +1,168 @@
+import * as vscode from 'vscode';
+import * as fs from 'fs';
+import * as path from 'path';
+import { RecordingSession } from '../recording/types';
+
+export class SessionStorage implements vscode.Disposable {
+  private storagePath: string;
+
+  constructor(context: vscode.ExtensionContext) {
+    const config = vscode.workspace.getConfiguration('serialMonitorPlus');
+    const customPath = config.get<string>('sessionStoragePath');
+
+    if (customPath && customPath.trim().length > 0) {
+      this.storagePath = customPath;
+    } else if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
+      this.storagePath = path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, '.serial-sessions');
+    } else {
+      this.storagePath = path.join(context.globalStorageUri.fsPath, 'sessions');
+    }
+
+    if (!fs.existsSync(this.storagePath)) {
+      fs.mkdirSync(this.storagePath, { recursive: true });
+    }
+  }
+
+  getSessionDir(sessionId: string): string {
+    return path.join(this.storagePath, `session-${sessionId}`);
+  }
+
+  getAudioFilePath(sessionId: string): string {
+    return path.join(this.getSessionDir(sessionId), 'audio.wav');
+  }
+
+  getManifestPath(sessionId: string): string {
+    return path.join(this.getSessionDir(sessionId), 'manifest.json');
+  }
+
+  async saveSession(session: RecordingSession): Promise<void> {
+    const dir = this.getSessionDir(session.id);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+
+    const manifestPath = this.getManifestPath(session.id);
+    fs.writeFileSync(manifestPath, JSON.stringify(session, null, 2), 'utf-8');
+  }
+
+  async loadSession(sessionId: string): Promise<RecordingSession | undefined> {
+    const manifestPath = this.getManifestPath(sessionId);
+    if (!fs.existsSync(manifestPath)) {
+      return undefined;
+    }
+
+    const data = fs.readFileSync(manifestPath, 'utf-8');
+    return JSON.parse(data) as RecordingSession;
+  }
+
+  async listSessions(): Promise<{ id: string; name: string; date: number; duration?: number; hasAudio: boolean }[]> {
+    if (!fs.existsSync(this.storagePath)) {
+      return [];
+    }
+
+    const entries = fs.readdirSync(this.storagePath, { withFileTypes: true });
+    const sessions: { id: string; name: string; date: number; duration?: number; hasAudio: boolean }[] = [];
+
+    for (const entry of entries) {
+      if (entry.isDirectory() && entry.name.startsWith('session-')) {
+        const sessionId = entry.name.replace('session-', '');
+        const manifestPath = this.getManifestPath(sessionId);
+        if (fs.existsSync(manifestPath)) {
+          try {
+            const data = fs.readFileSync(manifestPath, 'utf-8');
+            const session = JSON.parse(data) as RecordingSession;
+            sessions.push({
+              id: session.id,
+              name: session.name,
+              date: session.startTime,
+              duration: session.duration,
+              hasAudio: !!session.audioFile,
+            });
+          } catch {
+            // Skip corrupt sessions
+          }
+        }
+      }
+    }
+
+    return sessions.sort((a, b) => b.date - a.date);
+  }
+
+  async deleteSession(sessionId: string): Promise<void> {
+    const dir = this.getSessionDir(sessionId);
+    if (fs.existsSync(dir)) {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  }
+
+  dispose(): void {
+    // Nothing to clean up
+  }
+}
+
+export class SessionTreeProvider implements vscode.TreeDataProvider<SessionTreeItem> {
+  private _onDidChangeTreeData = new vscode.EventEmitter<SessionTreeItem | undefined | null | void>();
+  readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
+
+  constructor(private readonly storage: SessionStorage) { }
+
+  async refresh(): Promise<void> {
+    this._onDidChangeTreeData.fire();
+  }
+
+  getTreeItem(element: SessionTreeItem): vscode.TreeItem {
+    return element;
+  }
+
+  async getChildren(element?: SessionTreeItem): Promise<SessionTreeItem[]> {
+    if (element) {
+      return [];
+    }
+
+    const sessions = await this.storage.listSessions();
+    return sessions.map((s) => {
+      const duration = s.duration ? formatDuration(s.duration) : 'Unknown duration';
+      const dateStr = new Date(s.date).toLocaleString();
+      return new SessionTreeItem(s.id, s.name, dateStr, duration, s.hasAudio);
+    });
+  }
+
+  dispose(): void {
+    this._onDidChangeTreeData.dispose();
+  }
+}
+
+export class SessionTreeItem extends vscode.TreeItem {
+  constructor(
+    public readonly sessionId: string,
+    public readonly sessionName: string,
+    dateStr: string,
+    duration: string,
+    hasAudio: boolean,
+  ) {
+    super(sessionName, vscode.TreeItemCollapsibleState.None);
+    this.description = `${dateStr} • ${duration}`;
+    this.tooltip = `${sessionName}\n${dateStr}\nDuration: ${duration}\nAudio: ${hasAudio ? 'Yes' : 'No'}`;
+    this.iconPath = new vscode.ThemeIcon(hasAudio ? 'mic' : 'history');
+    this.contextValue = 'recordedSession';
+    this.command = {
+      command: 'serialMonitorPlus.openPlayback',
+      title: 'Open Playback',
+      arguments: [this],
+    };
+  }
+}
+
+function formatDuration(ms: number): string {
+  const seconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+
+  if (hours > 0) {
+    return `${hours}h ${minutes % 60}m ${seconds % 60}s`;
+  }
+  if (minutes > 0) {
+    return `${minutes}m ${seconds % 60}s`;
+  }
+  return `${seconds}s`;
+}

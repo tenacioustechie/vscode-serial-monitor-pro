@@ -1,0 +1,177 @@
+{
+  "name": "vscode-serial-monitor-plus",
+  "displayName": "Serial Monitor Plus",
+  "description": "Serial Monitor with timeline recording and audio commentary playback",
+  "version": "0.1.0",
+  "publisher": "serial-monitor-plus",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "serial",
+    "monitor",
+    "serial port",
+    "UART",
+    "recording",
+    "playback",
+    "timeline"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "serialMonitorPlus.openMonitor",
+        "title": "Open Monitor",
+        "category": "Serial Monitor Plus",
+        "icon": "$(plug)"
+      },
+      {
+        "command": "serialMonitorPlus.refreshPorts",
+        "title": "Refresh Ports",
+        "category": "Serial Monitor Plus",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "serialMonitorPlus.startRecording",
+        "title": "Start Recording",
+        "category": "Serial Monitor Plus",
+        "icon": "$(circle-filled)"
+      },
+      {
+        "command": "serialMonitorPlus.stopRecording",
+        "title": "Stop Recording",
+        "category": "Serial Monitor Plus",
+        "icon": "$(debug-stop)"
+      },
+      {
+        "command": "serialMonitorPlus.openPlayback",
+        "title": "Open Session Playback",
+        "category": "Serial Monitor Plus",
+        "icon": "$(play)"
+      },
+      {
+        "command": "serialMonitorPlus.refreshSessions",
+        "title": "Refresh Sessions",
+        "category": "Serial Monitor Plus",
+        "icon": "$(refresh)"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "serialMonitorPlus",
+          "title": "Serial Monitor Plus",
+          "icon": "$(plug)"
+        }
+      ]
+    },
+    "views": {
+      "serialMonitorPlus": [
+        {
+          "id": "serialMonitorPorts",
+          "name": "Serial Ports"
+        },
+        {
+          "id": "serialMonitorSessions",
+          "name": "Recorded Sessions"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "serialMonitorPlus.refreshPorts",
+          "when": "view == serialMonitorPorts",
+          "group": "navigation"
+        },
+        {
+          "command": "serialMonitorPlus.refreshSessions",
+          "when": "view == serialMonitorSessions",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "serialMonitorPlus.openMonitor",
+          "when": "view == serialMonitorPorts",
+          "group": "inline"
+        },
+        {
+          "command": "serialMonitorPlus.openPlayback",
+          "when": "view == serialMonitorSessions",
+          "group": "inline"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Serial Monitor Plus",
+      "properties": {
+        "serialMonitorPlus.defaultBaudRate": {
+          "type": "number",
+          "default": 115200,
+          "description": "Default baud rate for serial connections"
+        },
+        "serialMonitorPlus.customBaudRates": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "number"
+          },
+          "description": "Additional custom baud rates to show in the selector"
+        },
+        "serialMonitorPlus.defaultLineEnding": {
+          "type": "string",
+          "default": "\\n",
+          "enum": [
+            "",
+            "\\n",
+            "\\r",
+            "\\r\\n"
+          ],
+          "enumDescriptions": [
+            "None",
+            "LF (\\n)",
+            "CR (\\r)",
+            "CRLF (\\r\\n)"
+          ],
+          "description": "Default line ending appended to sent messages"
+        },
+        "serialMonitorPlus.timestampEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show timestamps on received serial data"
+        },
+        "serialMonitorPlus.sessionStoragePath": {
+          "type": "string",
+          "default": "",
+          "description": "Custom path for storing recording sessions. Leave empty to use workspace .serial-sessions/ directory."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run build",
+    "build": "node esbuild.js --production",
+    "watch": "node esbuild.js --watch",
+    "lint": "eslint src --ext ts",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest"
+  },
+  "dependencies": {
+    "serialport": "^12.0.0",
+    "node-record-lpcm16": "^1.0.1"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.0.0",
+    "esbuild": "^0.20.0",
+    "typescript": "^5.3.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.56.0"
+  }
+}
