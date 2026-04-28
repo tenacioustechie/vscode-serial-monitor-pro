@@ -1,0 +1,143 @@
+.hero {
+  background: #0d1b2a;
+  padding: 64px 24px;
+  text-align: center;
+  border-bottom: 1px solid #1e3a5f;
+}
+
+.heroInner {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.heroLogo {
+  width: 100px;
+  height: 100px;
+  margin-bottom: 20px;
+}
+
+.heroTitle {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #39ff14;
+  margin-bottom: 12px;
+}
+
+.heroSubtitle {
+  font-size: 1.1rem;
+  color: #8899aa;
+  margin-bottom: 28px;
+  line-height: 1.6;
+}
+
+.heroButtons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.btnPrimary {
+  background: #00d4ff;
+  color: #0d1b2a;
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-weight: 700;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.btnPrimary:hover {
+  background: #1ad8ff;
+  color: #0d1b2a;
+  text-decoration: none;
+}
+
+.btnSecondary {
+  border: 1px solid #39ff14;
+  color: #39ff14;
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.btnSecondary:hover {
+  background: rgba(57, 255, 20, 0.1);
+  color: #39ff14;
+  text-decoration: none;
+}
+
+.heroBadges {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  font-size: 0.85rem;
+  color: #8899aa;
+  flex-wrap: wrap;
+}
+
+.features {
+  padding: 48px 24px;
+  background: #111d2e;
+}
+
+.featuresInner {
+  max-width: 900px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+}
+
+.featureCard {
+  background: #0d1b2a;
+  border: 1px solid #1e3a5f;
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.featureIcon {
+  font-size: 2rem;
+  margin-bottom: 12px;
+}
+
+.featureCard h3 {
+  color: #00d4ff;
+  margin-bottom: 8px;
+}
+
+.featureCard p {
+  color: #8899aa;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.requirements {
+  padding: 40px 24px;
+  background: #0d1b2a;
+  border-top: 1px solid #1e3a5f;
+}
+
+.requirementsInner {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.requirementsInner h2 {
+  color: #39ff14;
+  margin-bottom: 16px;
+}
+
+.requirementsInner ul {
+  color: #8899aa;
+  margin-bottom: 12px;
+}
+
+.requirementsInner p {
+  color: #8899aa;
+  font-size: 0.9rem;
+}
