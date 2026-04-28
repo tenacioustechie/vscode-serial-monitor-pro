@@ -1,4 +1,4 @@
-# Publishing Serial Monitor Plus to the VS Code Marketplace
+# Publishing Serial Monitor Pro to the VS Code Marketplace
 
 ## 1. Prerequisites
 
@@ -11,7 +11,7 @@ npm install -g @vscode/vsce
 ## 2. Create a Publisher Account
 
 1. Go to [marketplace.visualstudio.com/manage](https://marketplace.visualstudio.com/manage) and sign in with a Microsoft account.
-2. Click **Create publisher** and choose a publisher ID. This must match the `"publisher"` field in `package.json` — currently set to `"serial-monitor-plus"`.
+2. Click **Create publisher** and choose a publisher ID. This must match the `"publisher"` field in `package.json` — currently set to `"serial-monitor-pro"`.
 
 ## 3. Create a Personal Access Token
 
@@ -30,7 +30,7 @@ The marketplace requires a few fields that are missing or need improvement. Upda
   // Add a repository link (required for trust signals, not strictly required to publish)
   "repository": {
     "type": "git",
-    "url": "https://github.com/YOUR_USERNAME/vscode-serial-monitor-plus"
+    "url": "https://github.com/YOUR_USERNAME/vscode-serial-monitor-pro"
   },
 
   // Add an icon (128x128 PNG, place file in repo root)
@@ -69,7 +69,7 @@ Before publishing, build the package locally to verify its contents:
 vsce package
 ```
 
-This produces `serial-monitor-plus-0.1.0.vsix`. Inspect what's inside:
+This produces `serial-monitor-pro-0.1.0.vsix`. Inspect what's inside:
 
 ```bash
 vsce ls    # lists all files that will be packaged
@@ -78,7 +78,7 @@ vsce ls    # lists all files that will be packaged
 Install and test the package locally before publishing:
 
 ```bash
-code --install-extension serial-monitor-plus-0.1.0.vsix
+code --install-extension serial-monitor-pro-0.1.0.vsix
 ```
 
 ## 7. Publish
@@ -86,7 +86,7 @@ code --install-extension serial-monitor-plus-0.1.0.vsix
 Log in with your PAT:
 
 ```bash
-vsce login serial-monitor-plus
+vsce login serial-monitor-pro
 # Paste your Personal Access Token when prompted
 ```
 

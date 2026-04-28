@@ -7,7 +7,7 @@ export class SessionStorage implements vscode.Disposable {
   private storagePath: string;
 
   constructor(context: vscode.ExtensionContext) {
-    const config = vscode.workspace.getConfiguration('serialMonitorPlus');
+    const config = vscode.workspace.getConfiguration('serialMonitorPro');
     const customPath = config.get<string>('sessionStoragePath');
 
     if (customPath && customPath.trim().length > 0) {
@@ -146,7 +146,7 @@ export class SessionTreeItem extends vscode.TreeItem {
     this.iconPath = new vscode.ThemeIcon(hasAudio ? 'mic' : 'history');
     this.contextValue = 'recordedSession';
     this.command = {
-      command: 'serialMonitorPlus.openPlayback',
+      command: 'serialMonitorPro.openPlayback',
       title: 'Open Playback',
       arguments: [this],
     };

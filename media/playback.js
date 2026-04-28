@@ -1,4 +1,4 @@
-// Serial Monitor Plus - Playback Webview Script
+// Serial Monitor Pro - Playback Webview Script
 (function () {
   // @ts-ignore
   const vscode = acquireVsCodeApi();

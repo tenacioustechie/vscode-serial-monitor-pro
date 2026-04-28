@@ -1,9 +1,9 @@
 {
-  "name": "vscode-serial-monitor-plus",
-  "displayName": "Serial Monitor Plus",
+  "name": "vscode-serial-monitor-pro",
+  "displayName": "Serial Monitor Pro",
   "description": "Serial Monitor with timeline recording and audio commentary playback",
   "version": "0.1.0",
-  "publisher": "serial-monitor-plus",
+  "publisher": "serial-monitor-pro",
   "license": "MIT",
   "engines": {
     "vscode": "^1.85.0"
@@ -25,53 +25,53 @@
   "contributes": {
     "commands": [
       {
-        "command": "serialMonitorPlus.openMonitor",
+        "command": "serialMonitorPro.openMonitor",
         "title": "Open Monitor",
-        "category": "Serial Monitor Plus",
+        "category": "Serial Monitor Pro",
         "icon": "$(plug)"
       },
       {
-        "command": "serialMonitorPlus.refreshPorts",
+        "command": "serialMonitorPro.refreshPorts",
         "title": "Refresh Ports",
-        "category": "Serial Monitor Plus",
+        "category": "Serial Monitor Pro",
         "icon": "$(refresh)"
       },
       {
-        "command": "serialMonitorPlus.startRecording",
+        "command": "serialMonitorPro.startRecording",
         "title": "Start Recording",
-        "category": "Serial Monitor Plus",
+        "category": "Serial Monitor Pro",
         "icon": "$(circle-filled)"
       },
       {
-        "command": "serialMonitorPlus.stopRecording",
+        "command": "serialMonitorPro.stopRecording",
         "title": "Stop Recording",
-        "category": "Serial Monitor Plus",
+        "category": "Serial Monitor Pro",
         "icon": "$(debug-stop)"
       },
       {
-        "command": "serialMonitorPlus.openPlayback",
+        "command": "serialMonitorPro.openPlayback",
         "title": "Open Session Playback",
-        "category": "Serial Monitor Plus",
+        "category": "Serial Monitor Pro",
         "icon": "$(play)"
       },
       {
-        "command": "serialMonitorPlus.refreshSessions",
+        "command": "serialMonitorPro.refreshSessions",
         "title": "Refresh Sessions",
-        "category": "Serial Monitor Plus",
+        "category": "Serial Monitor Pro",
         "icon": "$(refresh)"
       }
     ],
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "serialMonitorPlus",
-          "title": "Serial Monitor Plus",
+          "id": "serialMonitorPro",
+          "title": "Serial Monitor Pro",
           "icon": "$(plug)"
         }
       ]
     },
     "views": {
-      "serialMonitorPlus": [
+      "serialMonitorPro": [
         {
           "id": "serialMonitorPorts",
           "name": "Serial Ports"
@@ -85,38 +85,38 @@
     "menus": {
       "view/title": [
         {
-          "command": "serialMonitorPlus.refreshPorts",
+          "command": "serialMonitorPro.refreshPorts",
           "when": "view == serialMonitorPorts",
           "group": "navigation"
         },
         {
-          "command": "serialMonitorPlus.refreshSessions",
+          "command": "serialMonitorPro.refreshSessions",
           "when": "view == serialMonitorSessions",
           "group": "navigation"
         }
       ],
       "view/item/context": [
         {
-          "command": "serialMonitorPlus.openMonitor",
+          "command": "serialMonitorPro.openMonitor",
           "when": "view == serialMonitorPorts",
           "group": "inline"
         },
         {
-          "command": "serialMonitorPlus.openPlayback",
+          "command": "serialMonitorPro.openPlayback",
           "when": "view == serialMonitorSessions",
           "group": "inline"
         }
       ]
     },
     "configuration": {
-      "title": "Serial Monitor Plus",
+      "title": "Serial Monitor Pro",
       "properties": {
-        "serialMonitorPlus.defaultBaudRate": {
+        "serialMonitorPro.defaultBaudRate": {
           "type": "number",
           "default": 115200,
           "description": "Default baud rate for serial connections"
         },
-        "serialMonitorPlus.customBaudRates": {
+        "serialMonitorPro.customBaudRates": {
           "type": "array",
           "default": [],
           "items": {
@@ -124,7 +124,7 @@
           },
           "description": "Additional custom baud rates to show in the selector"
         },
-        "serialMonitorPlus.defaultLineEnding": {
+        "serialMonitorPro.defaultLineEnding": {
           "type": "string",
           "default": "\\n",
           "enum": [
@@ -141,12 +141,12 @@
           ],
           "description": "Default line ending appended to sent messages"
         },
-        "serialMonitorPlus.timestampEnabled": {
+        "serialMonitorPro.timestampEnabled": {
           "type": "boolean",
           "default": false,
           "description": "Show timestamps on received serial data"
         },
-        "serialMonitorPlus.sessionStoragePath": {
+        "serialMonitorPro.sessionStoragePath": {
           "type": "string",
           "default": "",
           "description": "Custom path for storing recording sessions. Leave empty to use workspace .serial-sessions/ directory."

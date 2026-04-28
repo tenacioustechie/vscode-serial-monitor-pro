@@ -112,7 +112,7 @@ export class MonitorPanel implements vscode.Disposable {
   private async handleMessage(message: any): Promise<void> {
     switch (message.type) {
       case 'connect': {
-        const config = vscode.workspace.getConfiguration('serialMonitorPlus');
+        const config = vscode.workspace.getConfiguration('serialMonitorPro');
         const customBaudRates = config.get<number[]>('customBaudRates') ?? [];
         const portConfig: PortConfig = {
           path: this.portPath,
@@ -235,7 +235,7 @@ export class MonitorPanel implements vscode.Disposable {
     const cssUri = webview.asWebviewUri(vscode.Uri.joinPath(this.extensionUri, 'media', 'monitor.css'));
     const jsUri = webview.asWebviewUri(vscode.Uri.joinPath(this.extensionUri, 'media', 'monitor.js'));
 
-    const config = vscode.workspace.getConfiguration('serialMonitorPlus');
+    const config = vscode.workspace.getConfiguration('serialMonitorPro');
     const customBaudRates = config.get<number[]>('customBaudRates') ?? [];
     const allBaudRates = [...STANDARD_BAUD_RATES, ...customBaudRates].sort((a, b) => a - b);
     const defaultBaudRate = config.get<number>('defaultBaudRate') ?? 115200;

@@ -50,4 +50,4 @@ Sessions are stored as directories containing:
 
 ## Configuration Namespace
 
-All VS Code settings use the `serialMonitorPlus.*` prefix. See `package.json` `contributes.configuration` for the full schema.
+All VS Code settings use the `serialMonitorPro.*` prefix. See `package.json` `contributes.configuration` for the full schema.

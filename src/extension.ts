@@ -7,7 +7,7 @@ import { PlaybackPanel } from './playback/playbackPanel';
 import { AudioRecorder } from './recording/audioRecorder';
 
 export async function activate(context: vscode.ExtensionContext) {
-  console.log('Serial Monitor Plus is now active');
+  console.log('Serial Monitor Pro is now active');
 
   // Initialize storage
   const sessionStorage = new SessionStorage(context);
@@ -33,7 +33,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Register commands
   context.subscriptions.push(
-    vscode.commands.registerCommand('serialMonitorPlus.openMonitor', (item?: PortTreeItem) => {
+    vscode.commands.registerCommand('serialMonitorPro.openMonitor', (item?: PortTreeItem) => {
       if (item && item instanceof PortTreeItem && !item.isDetail) {
         MonitorPanel.createOrShow(context.extensionUri, item, sessionRecorder);
       } else {
@@ -42,18 +42,18 @@ export async function activate(context: vscode.ExtensionContext) {
       }
     }),
 
-    vscode.commands.registerCommand('serialMonitorPlus.refreshPorts', () => {
+    vscode.commands.registerCommand('serialMonitorPro.refreshPorts', () => {
       portManager.refresh();
     }),
 
-    vscode.commands.registerCommand('serialMonitorPlus.startRecording', () => {
+    vscode.commands.registerCommand('serialMonitorPro.startRecording', () => {
       // This is handled by the active monitor panel
       vscode.window.showInformationMessage(
         'Use the Record button in an open Serial Monitor panel to start recording.'
       );
     }),
 
-    vscode.commands.registerCommand('serialMonitorPlus.stopRecording', async () => {
+    vscode.commands.registerCommand('serialMonitorPro.stopRecording', async () => {
       if (sessionRecorder.isRecording) {
         const name = await vscode.window.showInputBox({
           prompt: 'Enter a name for this recording session',
@@ -64,7 +64,7 @@ export async function activate(context: vscode.ExtensionContext) {
       }
     }),
 
-    vscode.commands.registerCommand('serialMonitorPlus.openPlayback', async (item?: SessionTreeItem | string) => {
+    vscode.commands.registerCommand('serialMonitorPro.openPlayback', async (item?: SessionTreeItem | string) => {
       let sessionId: string | undefined;
 
       if (item instanceof SessionTreeItem) {
@@ -98,7 +98,7 @@ export async function activate(context: vscode.ExtensionContext) {
       }
     }),
 
-    vscode.commands.registerCommand('serialMonitorPlus.refreshSessions', () => {
+    vscode.commands.registerCommand('serialMonitorPro.refreshSessions', () => {
       sessionTreeProvider.refresh();
     }),
   );

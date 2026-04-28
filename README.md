@@ -1,6 +1,6 @@
-# Serial Monitor Plus
+# Serial Monitor Pro
 
-**Serial Monitor Plus** is a VS Code extension for monitoring serial ports with a unique twist: every session can be recorded — serial data and microphone audio together — and played back later with synchronized timing.
+**Serial Monitor Pro** is a VS Code extension for monitoring serial ports with a unique twist: every session can be recorded — serial data and microphone audio together — and played back later with synchronized timing.
 
 Built for embedded developers, hardware engineers, and anyone who needs more than a basic serial terminal.
 
@@ -40,7 +40,7 @@ All recorded sessions are listed in a dedicated sidebar panel. Sessions are stor
 
 ## Getting Started
 
-1. Open the **Serial Monitor Plus** panel from the activity bar (plug icon).
+1. Open the **Serial Monitor Pro** panel from the activity bar (plug icon).
 2. Your connected serial ports appear in the **Serial Ports** list.
 3. Click a port to open the monitor, configure settings in the toolbar, and click **Connect**.
 
@@ -62,11 +62,11 @@ All recorded sessions are listed in a dedicated sidebar panel. Sessions are stor
 
 | Setting | Default | Description |
 |---|---|---|
-| `serialMonitorPlus.defaultBaudRate` | `115200` | Default baud rate for new connections |
-| `serialMonitorPlus.customBaudRates` | `[]` | Additional baud rates to show in the selector |
-| `serialMonitorPlus.defaultLineEnding` | `\n` | Line ending appended to outgoing messages |
-| `serialMonitorPlus.timestampEnabled` | `false` | Show timestamps on received data |
-| `serialMonitorPlus.sessionStoragePath` | `""` | Custom path for session storage (defaults to `.serial-sessions/` in the workspace) |
+| `serialMonitorPro.defaultBaudRate` | `115200` | Default baud rate for new connections |
+| `serialMonitorPro.customBaudRates` | `[]` | Additional baud rates to show in the selector |
+| `serialMonitorPro.defaultLineEnding` | `\n` | Line ending appended to outgoing messages |
+| `serialMonitorPro.timestampEnabled` | `false` | Show timestamps on received data |
+| `serialMonitorPro.sessionStoragePath` | `""` | Custom path for session storage (defaults to `.serial-sessions/` in the workspace) |
 
 ---
 

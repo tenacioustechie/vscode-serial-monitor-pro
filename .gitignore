@@ -2,3 +2,6 @@ node_modules/
 dist/
 *.vsix
 .serial-sessions/
+media/.DS_Store
+.DS_Store
+.worktrees/

@@ -96,7 +96,7 @@ export class PortTreeItem extends vscode.TreeItem {
       this.tooltip = `${portInfo.path}${portInfo.manufacturer ? ` (${portInfo.manufacturer})` : ''}`;
       this.iconPath = new vscode.ThemeIcon('plug');
       this.command = {
-        command: 'serialMonitorPlus.openMonitor',
+        command: 'serialMonitorPro.openMonitor',
         title: 'Open Monitor',
         arguments: [this],
       };
