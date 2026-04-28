@@ -5,3 +5,5 @@ dist/
 media/.DS_Store
 .DS_Store
 .worktrees/
+.superpowers/
+docs-site/build/

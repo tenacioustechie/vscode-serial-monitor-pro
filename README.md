@@ -4,6 +4,8 @@
 
 Built for embedded developers, hardware engineers, and anyone who needs more than a basic serial terminal.
 
+**[Documentation →](https://serialmonitorpro.millsit.com)**
+
 ---
 
 ## Features
