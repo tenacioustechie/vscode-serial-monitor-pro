@@ -22,6 +22,17 @@ const config = {
     },
   },
 
+  future: {
+    faster: {
+      rspackBundler: true,
+      swcJsLoader: true,
+      swcJsMinimizer: true,
+      swcHtmlMinimizer: true,
+      lightningCssMinimizer: true,
+      mdxCrossCompilerCache: true,
+    },
+  },
+
   i18n: {
     defaultLocale: 'en',
     locales: ['en'],
