@@ -21,6 +21,8 @@ export interface SerialEvent {
 }
 
 export interface Marker {
+  /** Stable UUID. Optional for backward compat with sessions saved before this field existed. */
+  id?: string;
   /** Milliseconds offset from session startTime */
   timestamp: number;
   label: string;

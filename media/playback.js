@@ -86,6 +86,45 @@
     }
   }
 
+  function startInlineEdit(labelEl, marker) {
+    if (labelEl.querySelector('input')) { return; } // already editing
+
+    const original = marker.label;
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'marker-label-input';
+    input.value = original;
+
+    labelEl.textContent = '';
+    labelEl.appendChild(input);
+    input.focus();
+    input.select();
+
+    let finished = false;
+    const finish = (save) => {
+      if (finished) { return; }
+      finished = true;
+      const newLabel = input.value.trim();
+      if (save && newLabel !== '' && newLabel !== original) {
+        marker.label = newLabel;
+        vscode.postMessage({
+          type: 'renameMarker',
+          id: marker.id,
+          label: newLabel,
+        });
+      }
+      renderMarkers();
+    };
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); finish(true); }
+      else if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+    });
+    input.addEventListener('blur', () => finish(true));
+    input.addEventListener('mousedown', (e) => e.stopPropagation());
+    input.addEventListener('click', (e) => e.stopPropagation());
+  }
+
   function renderMarkers() {
     // Timeline markers
     timelineMarkers.innerHTML = '';
@@ -124,7 +163,11 @@
                 <button class="marker-delete" title="Remove marker">✕</button>
             `;
       item.addEventListener('click', (e) => {
-        if (!e.target.classList.contains('marker-delete')) {
+        if (
+          !e.target.classList.contains('marker-delete') &&
+          !e.target.classList.contains('marker-label') &&
+          !e.target.classList.contains('marker-label-input')
+        ) {
           seekTo(marker.timestamp);
         }
       });
@@ -132,13 +175,15 @@
         e.stopPropagation();
         vscode.postMessage({
           type: 'removeMarker',
-          timestamp: marker.timestamp,
-          label: marker.label,
+          id: marker.id,
         });
-        session.markers = session.markers.filter(
-          (m) => m.timestamp !== marker.timestamp || m.label !== marker.label
-        );
+        session.markers = session.markers.filter((m) => m.id !== marker.id);
         renderMarkers();
+      });
+      const labelEl = item.querySelector('.marker-label');
+      labelEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        startInlineEdit(labelEl, marker);
       });
       markersList.appendChild(item);
     });
@@ -171,12 +216,12 @@
   });
 
   addMarkerBtn.addEventListener('click', () => {
-    const label = prompt('Enter marker label:', '');
-    if (label === null || label.trim() === '') { return; }
+    if (!session) { return; }
 
     const marker = {
+      id: crypto.randomUUID(),
       timestamp: currentTimeMs,
-      label: label.trim(),
+      label: 'Marker ' + (session.markers.length + 1),
       color: '#f6ad55',
     };
 
@@ -185,10 +230,8 @@
       ...marker,
     });
 
-    if (session) {
-      session.markers.push(marker);
-      renderMarkers();
-    }
+    session.markers.push(marker);
+    renderMarkers();
   });
 
   // Timeline click to seek
