@@ -8,18 +8,44 @@ Install the VS Code Extension CLI tool globally:
 npm install -g @vscode/vsce
 ```
 
+After install, the command is `vsce` (not `@vscode/vsce`). Verify with `vsce --version`.
+
+If you'd rather not install globally, run it ad-hoc with `npx @vscode/vsce <command>` — every command below works the same way (e.g., `npx @vscode/vsce package`).
+
 ## 2. Create a Publisher Account
 
 1. Go to [marketplace.visualstudio.com/manage](https://marketplace.visualstudio.com/manage) and sign in with a Microsoft account.
-2. Click **Create publisher** and choose a publisher ID. This must match the `"publisher"` field in `package.json` — currently set to `"serial-monitor-pro"`.
+2. Click **Create publisher** and choose a publisher ID. This must match the `"publisher"` field in `package.json` — currently set to `"millsit"`.
+
+### If you get "Publisher Metadata has suspicious content"
+
+This is a Marketplace spam-filter false positive. Common triggers and fixes:
+
+- **Avoid product-name-style IDs with hyphens** (e.g., `serial-monitor-pro`). The filter flags these heavily because spammers use them. Use a personal or company ID instead (`millsit`, `brianmills`). The Marketplace convention is that a publisher represents *a person or company*, not a product — the product name lives in `name`/`displayName`.
+- **Strip URLs from the description field** in the create-publisher form (the package.json description is fine).
+- **Verify your Microsoft account** has a confirmed phone number and email (Microsoft Account → Security).
+- **Try incognito or a different browser** — some users report it succeeds on a second browser.
+- **Wait 24 hours** — the filter occasionally lifts as the account ages.
+
+If you change the publisher ID after creating one, also update `"publisher"` in [package.json](package.json) so it matches.
 
 ## 3. Create a Personal Access Token
 
-1. Go to [dev.azure.com](https://dev.azure.com) → your organization → **User Settings** → **Personal Access Tokens**.
-2. Click **New Token** with these settings:
-   - **Organization:** All accessible organizations
-   - **Scopes:** Marketplace → **Manage**
-3. Copy the token — you won't see it again.
+The PAT lives in **Azure DevOps**, not the Marketplace site. Use the **same Microsoft account** you used for the publisher.
+
+1. Go to [dev.azure.com](https://dev.azure.com) and sign in.
+2. **First time only:** Azure DevOps will prompt you to **create an organization**. You must do this — PATs live inside an org. Name it anything (e.g., your username). The org is separate from your Marketplace publisher; they just need to share a Microsoft account.
+3. Once inside the organization (URL: `https://dev.azure.com/<your-org>/`), open **User settings** — it's a small icon in the **top-right corner**, next to your avatar (tooltip: "User settings"). Then click **Personal access tokens**.
+   - Direct URL shortcut: `https://dev.azure.com/<your-org>/_usersSettings/tokens`
+4. Click **+ New Token** with these settings:
+   - **Organization:** **All accessible organizations** (required — a single-org token will fail `vsce login` with a confusing 401)
+   - **Scopes:** click **Show all scopes** at the bottom of the dialog (Marketplace is hidden by default), then find **Marketplace** → check **Manage**
+5. Click **Create** and copy the token immediately — you won't see it again.
+
+### Common gotchas
+- **"All accessible organizations"** is mandatory. Single-org tokens are silently rejected by the Marketplace API.
+- **Show all scopes** — without expanding this, you won't see the Marketplace scope at all.
+- The Microsoft account on `dev.azure.com` must match the one that owns your Marketplace publisher.
 
 ## 4. Fix Required package.json Fields
 
@@ -86,7 +112,7 @@ code --install-extension serial-monitor-pro-0.1.0.vsix
 Log in with your PAT:
 
 ```bash
-vsce login serial-monitor-pro
+vsce login millsit
 # Paste your Personal Access Token when prompted
 ```
 

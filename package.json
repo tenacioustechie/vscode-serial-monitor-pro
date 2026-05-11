@@ -3,11 +3,16 @@
   "displayName": "Serial Monitor Pro",
   "description": "Serial Monitor with timeline recording and audio commentary playback",
   "version": "0.1.0",
-  "publisher": "serial-monitor-pro",
+  "publisher": "millsit",
   "license": "MIT",
   "engines": {
     "vscode": "^1.85.0"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tenacioustechie/vscode-serial-monitor-pro"
+  },
+  "icon": "icon.png",
   "categories": [
     "Other"
   ],

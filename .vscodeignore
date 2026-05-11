@@ -7,3 +7,13 @@ esbuild.js
 .eslintrc*
 .gitignore
 test/**
+CLAUDE.md
+DEPLOYMENT.md
+DEVELOPMENT.md
+.claude/
+.github/
+.superpowers/
+.worktrees/
+docs-site/
+test-arduino/
+docs/
