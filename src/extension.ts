@@ -31,6 +31,14 @@ export async function activate(context: vscode.ExtensionContext) {
   // Auto-refresh ports on activation
   portManager.refresh();
 
+  // Refresh the sessions tree whenever a recording is saved, regardless of
+  // which UI surface triggered the stop (monitor panel button, command, etc.).
+  context.subscriptions.push(
+    sessionRecorder.onSessionSaved(() => {
+      sessionTreeProvider.refresh();
+    }),
+  );
+
   // Register commands
   context.subscriptions.push(
     vscode.commands.registerCommand('serialMonitorPro.openMonitor', (item?: PortTreeItem) => {
@@ -60,7 +68,6 @@ export async function activate(context: vscode.ExtensionContext) {
           placeHolder: 'Session name',
         });
         await sessionRecorder.stopRecording(name ?? undefined);
-        sessionTreeProvider.refresh();
       }
     }),
 

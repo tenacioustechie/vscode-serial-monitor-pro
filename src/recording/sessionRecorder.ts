@@ -17,6 +17,9 @@ export class SessionRecorder implements vscode.Disposable {
   private readonly _onStateChange = new vscode.EventEmitter<RecordingState>();
   public readonly onStateChange = this._onStateChange.event;
 
+  private readonly _onSessionSaved = new vscode.EventEmitter<RecordingSession>();
+  public readonly onSessionSaved = this._onSessionSaved.event;
+
   constructor(
     private readonly sessionStorage: SessionStorage,
   ) { }
@@ -129,6 +132,7 @@ export class SessionRecorder implements vscode.Disposable {
     this.serialEventLogger = undefined;
 
     this._onStateChange.fire(this.getState());
+    this._onSessionSaved.fire(session);
 
     return session;
   }
@@ -138,5 +142,6 @@ export class SessionRecorder implements vscode.Disposable {
       this.stopRecording().catch(() => { });
     }
     this._onStateChange.dispose();
+    this._onSessionSaved.dispose();
   }
 }
