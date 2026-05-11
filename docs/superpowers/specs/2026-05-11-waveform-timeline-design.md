@@ -133,7 +133,7 @@ In `initializePlayback()`:
 
 ## Testing
 
-- **Unit tests (Jest, existing setup):** split the pure logic from the DOM-touching code by putting `parseWavHeader(buffer)` and `computePeaks(pcmView, bucketCount, bitsPerSample, numChannels)` in `media/waveform-core.js` (plain JS, no DOM APIs — only `ArrayBuffer`/`DataView`/`Float32Array`). `media/waveform.js` loads `waveform-core.js` first via a separate `<script>` tag and uses the globals it exposes. Jest tests load `waveform-core.js` directly (via `require` or `import` against the file path); no bundler involved. Test fixtures:
+- **Unit tests (Node's built-in `node:test` + `node:assert`):** the project has no existing tests and no Jest install despite what `package.json` and CLAUDE.md suggest. Use Node 20's built-in test runner — zero new dependencies. Wire up `npm test` to `node --test tests/*.test.mjs`. Split the pure logic from the DOM-touching code by putting `parseWavHeader(buffer)` and `computePeaks(pcmView, bucketCount, bitsPerSample, numChannels)` in `media/waveform-core.js` (plain JS, no DOM APIs — only `ArrayBuffer`/`DataView`/`Float32Array`). `media/waveform.js` loads `waveform-core.js` first via a separate `<script>` tag and uses the globals it exposes. The test file imports `waveform-core.js` as an ESM module via a `.mjs` test file that uses dynamic `import()` (since `waveform-core.js` is loaded as a classic script in the browser, it must expose its functions via `globalThis` and also via a CommonJS `module.exports` fallback so Node's loader can pick them up — concretely, end the file with `if (typeof module !== 'undefined') { module.exports = WaveformCore; }`). Test fixtures:
   - Valid mono 16-bit silence (all zeros) — peaks should all be `[0, 0]`.
   - Valid mono 16-bit sine wave — peaks should approximate `[-1, 1]` near sine peaks, `[0, 0]` near zero crossings.
   - Multi-chunk WAV with a `LIST` chunk before `data` — parser should skip it.
@@ -163,4 +163,5 @@ In `initializePlayback()`:
 | [media/waveform.js](../../../media/waveform.js) | New file. Browser wrapper: fetch, canvas draw, `ResizeObserver`. Exposes `window.SerialMonitorWaveform.attach()`. |
 | [media/playback.js](../../../media/playback.js) | In `initializePlayback()`, call `attach()` when `audioUri` is set; apply `no-audio` fallback on failure. |
 | [media/playback.css](../../../media/playback.css) | New `.timeline-track`, `.timeline-waveform`, updated `.timeline-events` strip layout, `.no-audio` fallback rules. Bump `--timeline-height` to 96px. |
-| `test/waveform.test.ts` (or `.js`) | New Jest tests for `parseWavHeader` and `computePeaks`. |
+| `tests/waveform-core.test.mjs` | New Node-built-in tests for `parseWavHeader` and `computePeaks`. |
+| `package.json` | Update `test` script to `node --test tests/*.test.mjs`. No new dependencies. |
