@@ -171,12 +171,12 @@
   });
 
   addMarkerBtn.addEventListener('click', () => {
-    const label = prompt('Enter marker label:', '');
-    if (label === null || label.trim() === '') { return; }
+    if (!session) { return; }
 
     const marker = {
+      id: crypto.randomUUID(),
       timestamp: currentTimeMs,
-      label: label.trim(),
+      label: 'Marker ' + (session.markers.length + 1),
       color: '#f6ad55',
     };
 
@@ -185,10 +185,8 @@
       ...marker,
     });
 
-    if (session) {
-      session.markers.push(marker);
-      renderMarkers();
-    }
+    session.markers.push(marker);
+    renderMarkers();
   });
 
   // Timeline click to seek
