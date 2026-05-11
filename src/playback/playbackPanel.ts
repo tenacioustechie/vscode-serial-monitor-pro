@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as crypto from 'crypto';
 import { RecordingSession, SerialEvent, Marker } from '../recording/types';
 import { SessionStorage } from '../storage/sessionStorage';
 
@@ -45,6 +46,18 @@ export class PlaybackPanel implements vscode.Disposable {
     if (!session) {
       vscode.window.showErrorMessage(`Session not found: ${sessionId}`);
       return undefined;
+    }
+
+    // Backfill stable ids for markers saved before the id field existed.
+    let backfilled = false;
+    for (const marker of session.markers) {
+      if (!marker.id) {
+        marker.id = crypto.randomUUID();
+        backfilled = true;
+      }
+    }
+    if (backfilled) {
+      await sessionStorage.saveSession(session);
     }
 
     const panel = vscode.window.createWebviewPanel(
