@@ -132,12 +132,9 @@
         e.stopPropagation();
         vscode.postMessage({
           type: 'removeMarker',
-          timestamp: marker.timestamp,
-          label: marker.label,
+          id: marker.id,
         });
-        session.markers = session.markers.filter(
-          (m) => m.timestamp !== marker.timestamp || m.label !== marker.label
-        );
+        session.markers = session.markers.filter((m) => m.id !== marker.id);
         renderMarkers();
       });
       markersList.appendChild(item);
