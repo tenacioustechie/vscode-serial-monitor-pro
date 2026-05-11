@@ -106,6 +106,7 @@ export class PlaybackPanel implements vscode.Disposable {
 
       case 'addMarker': {
         const marker: Marker = {
+          id: message.id,
           timestamp: message.timestamp,
           label: message.label,
           color: message.color,
@@ -117,9 +118,18 @@ export class PlaybackPanel implements vscode.Disposable {
 
       case 'removeMarker': {
         this.session.markers = this.session.markers.filter(
-          (m) => m.timestamp !== message.timestamp || m.label !== message.label
+          (m) => m.id !== message.id
         );
         await this.sessionStorage.saveSession(this.session);
+        break;
+      }
+
+      case 'renameMarker': {
+        const target = this.session.markers.find((m) => m.id === message.id);
+        if (target) {
+          target.label = message.label;
+          await this.sessionStorage.saveSession(this.session);
+        }
         break;
       }
 
