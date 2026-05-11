@@ -130,6 +130,26 @@ vsce publish --pat YOUR_PAT_HERE
 
 ## 8. Subsequent Releases
 
+### Option A — Automated via GitHub Actions (recommended)
+
+The [.github/workflows/publish-extension.yml](.github/workflows/publish-extension.yml) workflow publishes automatically when you push a `v*` tag. It runs lint → test → build → publish, and verifies the tag matches `package.json`'s version before publishing.
+
+**One-time setup:**
+
+1. Add the PAT as a repo secret. In GitHub, go to **Settings → Secrets and variables → Actions → New repository secret**, name it `VSCE_PAT`, paste the token.
+2. Set a calendar reminder to rotate the PAT before it expires — Azure DevOps PATs max out at 1 year.
+
+**Per release:**
+
+```bash
+npm version patch          # bumps package.json (0.1.0 → 0.1.1) and creates a git tag
+git push && git push --tags
+```
+
+`npm version` handles the version bump, commit, and tag in one shot. Pushing the tag triggers the workflow.
+
+### Option B — Manual
+
 Bump the version in `package.json` before each release. `vsce publish` supports semver shortcuts:
 
 ```bash
