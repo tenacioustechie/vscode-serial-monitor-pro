@@ -3,7 +3,10 @@
 :root {
   --font-mono: var(--vscode-editor-font-family, 'Cascadia Code', 'Fira Code', 'Consolas', monospace);
   --font-size: var(--vscode-editor-font-size, 13px);
-  --timeline-height: 48px;
+  --timeline-height: 96px;
+  --timeline-height-no-audio: 48px;
+  --timeline-events-strip-height: 8px;
+  --waveform-color: var(--vscode-charts-blue, #4cc2c2);
   --marker-color: #f6ad55;
   --rx-color: var(--vscode-terminal-foreground, var(--vscode-foreground));
   --tx-color: var(--vscode-terminal-ansiBlue, #6cb6ff);
@@ -62,7 +65,7 @@ body {
   border-bottom: 1px solid var(--vscode-panel-border, #333);
 }
 
-.timeline-bar {
+.timeline-track {
   position: relative;
   height: var(--timeline-height);
   background: var(--vscode-input-background, #1a1a2e);
@@ -70,6 +73,23 @@ body {
   cursor: pointer;
   overflow: hidden;
   border: 1px solid var(--vscode-panel-border, #333);
+}
+
+.timeline-track.no-audio {
+  height: var(--timeline-height-no-audio);
+}
+
+.timeline-waveform {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.timeline-track.no-audio .timeline-waveform {
+  display: none;
 }
 
 .timeline-progress {
@@ -82,6 +102,7 @@ body {
       rgba(99, 179, 237, 0.25) 100%);
   transition: width 0.05s linear;
   pointer-events: none;
+  z-index: 3;
 }
 
 .timeline-cursor {
@@ -99,30 +120,46 @@ body {
 
 .timeline-events {
   position: absolute;
-  top: 0;
+  bottom: 0;
   left: 0;
   right: 0;
-  height: 100%;
+  height: var(--timeline-events-strip-height);
   pointer-events: none;
+  z-index: 2;
+}
+
+.timeline-track.no-audio .timeline-events {
+  top: 0;
+  bottom: 0;
+  height: 100%;
 }
 
 .timeline-event-tick {
   position: absolute;
-  bottom: 0;
   width: 1px;
-  opacity: 0.6;
+  opacity: 0.85;
 }
 
 .timeline-event-tick.rx {
   background: var(--rx-color);
-  height: 40%;
+  bottom: 0;
+  height: 50%;
 }
 
 .timeline-event-tick.tx {
   background: var(--tx-color);
-  height: 30%;
-  bottom: auto;
   top: 0;
+  height: 50%;
+}
+
+.timeline-track.no-audio .timeline-event-tick.rx {
+  height: 40%;
+  opacity: 0.6;
+}
+
+.timeline-track.no-audio .timeline-event-tick.tx {
+  height: 30%;
+  opacity: 0.6;
 }
 
 .timeline-markers {
