@@ -6,7 +6,7 @@ import path from 'node:path';
 
 const require = createRequire(import.meta.url);
 const here = path.dirname(fileURLToPath(import.meta.url));
-const { parseWavHeader } = require(path.join(here, '..', 'media', 'waveform-core.js'));
+const { parseWavHeader, computePeaks } = require(path.join(here, '..', 'media', 'waveform-core.js'));
 
 // Helper: build a minimal mono 16-bit PCM WAV with N samples of silence.
 function buildSilenceWav(sampleRate, numSamples) {
@@ -140,4 +140,15 @@ test('parseWavHeader: handles odd-sized chunk padding', () => {
 
   const header = parseWavHeader(buf);
   assert.equal(header.dataOffset, dataOffsetExpected);
+});
+
+test('computePeaks: 16-bit mono silence produces zero peaks', () => {
+  const buf = buildSilenceWav(44100, 1000);
+  const header = parseWavHeader(buf);
+  const pcm = new DataView(buf, header.dataOffset, header.dataLength);
+  const peaks = computePeaks(pcm, 10, header.bitsPerSample, header.numChannels);
+  assert.equal(peaks.length, 20);
+  for (let i = 0; i < peaks.length; i++) {
+    assert.equal(peaks[i], 0);
+  }
 });

@@ -66,7 +66,68 @@
     };
   }
 
-  const WaveformCore = { parseWavHeader: parseWavHeader };
+  // Read one sample at the given byte offset and normalize to [-1, 1].
+  function readSample(view, offset, bitsPerSample) {
+    if (bitsPerSample === 16) {
+      return view.getInt16(offset, true) / 32768;
+    }
+    if (bitsPerSample === 8) {
+      // 8-bit WAV is unsigned, midpoint 128.
+      return (view.getUint8(offset) - 128) / 128;
+    }
+    if (bitsPerSample === 24) {
+      const b0 = view.getUint8(offset);
+      const b1 = view.getUint8(offset + 1);
+      const b2 = view.getUint8(offset + 2);
+      let v = (b2 << 16) | (b1 << 8) | b0;
+      if (v & 0x800000) { v |= ~0xFFFFFF; } // sign-extend
+      return v / 8388608;
+    }
+    if (bitsPerSample === 32) {
+      return view.getInt32(offset, true) / 2147483648;
+    }
+    throw new Error('Unsupported bit depth: ' + bitsPerSample);
+  }
+
+  function computePeaks(pcmView, bucketCount, bitsPerSample, numChannels) {
+    const bytesPerSample = bitsPerSample / 8;
+    const bytesPerFrame = bytesPerSample * numChannels;
+    const totalFrames = Math.floor(pcmView.byteLength / bytesPerFrame);
+    const peaks = new Float32Array(bucketCount * 2);
+
+    if (totalFrames === 0 || bucketCount === 0) {
+      return peaks;
+    }
+
+    const framesPerBucket = totalFrames / bucketCount;
+
+    for (let b = 0; b < bucketCount; b++) {
+      const startFrame = Math.floor(b * framesPerBucket);
+      const endFrame = Math.min(totalFrames, Math.floor((b + 1) * framesPerBucket));
+      let min = Infinity;
+      let max = -Infinity;
+
+      for (let f = startFrame; f < endFrame; f++) {
+        // Downmix multi-channel to mono by averaging across channels.
+        let sum = 0;
+        const frameOffset = f * bytesPerFrame;
+        for (let c = 0; c < numChannels; c++) {
+          sum += readSample(pcmView, frameOffset + c * bytesPerSample, bitsPerSample);
+        }
+        const v = sum / numChannels;
+        if (v < min) { min = v; }
+        if (v > max) { max = v; }
+      }
+
+      if (min === Infinity) { min = 0; max = 0; }
+      peaks[b * 2] = min;
+      peaks[b * 2 + 1] = max;
+    }
+
+    return peaks;
+  }
+
+  const WaveformCore = { parseWavHeader: parseWavHeader, computePeaks: computePeaks };
 
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = WaveformCore;
