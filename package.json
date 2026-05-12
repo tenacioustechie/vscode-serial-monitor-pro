@@ -164,7 +164,7 @@
     "build": "node esbuild.js --production",
     "watch": "node esbuild.js --watch",
     "lint": "eslint src --ext ts",
-    "test": "node --experimental-vm-modules node_modules/.bin/jest"
+    "test": "node --test tests/*.test.mjs"
   },
   "dependencies": {
     "serialport": "^12.0.0",
