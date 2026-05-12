@@ -43,3 +43,101 @@ test('parseWavHeader: mono 16-bit PCM silence', () => {
   assert.equal(header.dataOffset, 44);
   assert.equal(header.dataLength, 2000);
 });
+
+test('parseWavHeader: rejects non-RIFF input', () => {
+  const buf = new ArrayBuffer(44);
+  assert.throws(() => parseWavHeader(buf), /Not a RIFF file/);
+});
+
+test('parseWavHeader: rejects non-WAVE form', () => {
+  const buf = new ArrayBuffer(44);
+  const bytes = new Uint8Array(buf);
+  bytes.set([0x52, 0x49, 0x46, 0x46], 0); // 'RIFF'
+  bytes.set([0x41, 0x56, 0x49, 0x20], 8); // 'AVI '
+  assert.throws(() => parseWavHeader(buf), /Not a WAVE file/);
+});
+
+test('parseWavHeader: rejects non-PCM audioFormat', () => {
+  const buf = buildSilenceWav(44100, 10);
+  new DataView(buf).setUint16(20, 3, true); // IEEE float
+  assert.throws(() => parseWavHeader(buf), /Unsupported audio format/);
+});
+
+test('parseWavHeader: rejects exotic bit depths', () => {
+  const buf = buildSilenceWav(44100, 10);
+  new DataView(buf).setUint16(34, 12, true);
+  assert.throws(() => parseWavHeader(buf), /Unsupported bit depth/);
+});
+
+test('parseWavHeader: skips a LIST chunk before data', () => {
+  // Build: RIFF/WAVE | fmt(16) | LIST(8) | data(20)
+  const listPayload = 8;
+  const dataPayload = 20;
+  const totalAfterRiff = 4 + (8 + 16) + (8 + listPayload) + (8 + dataPayload);
+  const buf = new ArrayBuffer(8 + totalAfterRiff);
+  const view = new DataView(buf);
+  const bytes = new Uint8Array(buf);
+  const writeAscii = (off, s) => { for (let i = 0; i < s.length; i++) { bytes[off + i] = s.charCodeAt(i); } };
+
+  writeAscii(0, 'RIFF');
+  view.setUint32(4, totalAfterRiff, true);
+  writeAscii(8, 'WAVE');
+
+  let p = 12;
+  // fmt
+  writeAscii(p, 'fmt '); view.setUint32(p + 4, 16, true);
+  view.setUint16(p + 8, 1, true);   // PCM
+  view.setUint16(p + 10, 1, true);  // mono
+  view.setUint32(p + 12, 44100, true);
+  view.setUint32(p + 16, 88200, true);
+  view.setUint16(p + 20, 2, true);
+  view.setUint16(p + 22, 16, true);
+  p += 8 + 16;
+
+  // LIST (skippable)
+  writeAscii(p, 'LIST'); view.setUint32(p + 4, listPayload, true);
+  p += 8 + listPayload;
+
+  // data
+  writeAscii(p, 'data'); view.setUint32(p + 4, dataPayload, true);
+  const dataOffsetExpected = p + 8;
+  p += 8 + dataPayload;
+
+  const header = parseWavHeader(buf);
+  assert.equal(header.dataOffset, dataOffsetExpected);
+  assert.equal(header.dataLength, dataPayload);
+});
+
+test('parseWavHeader: handles odd-sized chunk padding', () => {
+  // A LIST of odd size should advance with a pad byte and still locate data.
+  const listPayload = 7; // odd → 1 pad byte
+  const dataPayload = 10;
+  const totalAfterRiff = 4 + (8 + 16) + (8 + listPayload + 1) + (8 + dataPayload);
+  const buf = new ArrayBuffer(8 + totalAfterRiff);
+  const view = new DataView(buf);
+  const bytes = new Uint8Array(buf);
+  const writeAscii = (off, s) => { for (let i = 0; i < s.length; i++) { bytes[off + i] = s.charCodeAt(i); } };
+
+  writeAscii(0, 'RIFF');
+  view.setUint32(4, totalAfterRiff, true);
+  writeAscii(8, 'WAVE');
+
+  let p = 12;
+  writeAscii(p, 'fmt '); view.setUint32(p + 4, 16, true);
+  view.setUint16(p + 8, 1, true);
+  view.setUint16(p + 10, 1, true);
+  view.setUint32(p + 12, 44100, true);
+  view.setUint32(p + 16, 88200, true);
+  view.setUint16(p + 20, 2, true);
+  view.setUint16(p + 22, 16, true);
+  p += 8 + 16;
+
+  writeAscii(p, 'LIST'); view.setUint32(p + 4, listPayload, true);
+  p += 8 + listPayload + 1; // +1 pad
+
+  writeAscii(p, 'data'); view.setUint32(p + 4, dataPayload, true);
+  const dataOffsetExpected = p + 8;
+
+  const header = parseWavHeader(buf);
+  assert.equal(header.dataOffset, dataOffsetExpected);
+});
