@@ -152,3 +152,91 @@ test('computePeaks: 16-bit mono silence produces zero peaks', () => {
     assert.equal(peaks[i], 0);
   }
 });
+
+// Helper: build a mono 16-bit PCM WAV containing a sine wave at frequency Hz.
+function buildSineWav(sampleRate, frequency, numSamples, amplitude) {
+  const dataBytes = numSamples * 2;
+  const buf = new ArrayBuffer(44 + dataBytes);
+  const view = new DataView(buf);
+  const bytes = new Uint8Array(buf);
+  const writeAscii = (off, s) => { for (let i = 0; i < s.length; i++) { bytes[off + i] = s.charCodeAt(i); } };
+
+  writeAscii(0, 'RIFF');
+  view.setUint32(4, 36 + dataBytes, true);
+  writeAscii(8, 'WAVE');
+  writeAscii(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeAscii(36, 'data');
+  view.setUint32(40, dataBytes, true);
+
+  for (let i = 0; i < numSamples; i++) {
+    const sample = Math.round(Math.sin(2 * Math.PI * frequency * i / sampleRate) * amplitude * 32767);
+    view.setInt16(44 + i * 2, sample, true);
+  }
+  return buf;
+}
+
+test('computePeaks: full-amplitude sine wave produces peaks near ±1', () => {
+  // 100 cycles of a sine at 100 Hz, 44100 Hz sample rate.
+  const buf = buildSineWav(44100, 100, 44100, 1.0);
+  const header = parseWavHeader(buf);
+  const pcm = new DataView(buf, header.dataOffset, header.dataLength);
+  // Use enough buckets that each bucket spans many full sine cycles.
+  const peaks = computePeaks(pcm, 50, header.bitsPerSample, header.numChannels);
+  for (let b = 0; b < 50; b++) {
+    assert.ok(peaks[b * 2] < -0.9, `bucket ${b} min ${peaks[b * 2]} not near -1`);
+    assert.ok(peaks[b * 2 + 1] > 0.9, `bucket ${b} max ${peaks[b * 2 + 1]} not near +1`);
+  }
+});
+
+test('computePeaks: stereo input is downmixed to mono', () => {
+  // Build a stereo 16-bit WAV where left = +1.0 and right = -1.0 throughout.
+  // Downmix should average to 0 → peaks near zero.
+  const numFrames = 1000;
+  const dataBytes = numFrames * 4; // 2 channels × 2 bytes
+  const buf = new ArrayBuffer(44 + dataBytes);
+  const view = new DataView(buf);
+  const bytes = new Uint8Array(buf);
+  const writeAscii = (off, s) => { for (let i = 0; i < s.length; i++) { bytes[off + i] = s.charCodeAt(i); } };
+  writeAscii(0, 'RIFF');
+  view.setUint32(4, 36 + dataBytes, true);
+  writeAscii(8, 'WAVE');
+  writeAscii(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 2, true);          // stereo
+  view.setUint32(24, 44100, true);
+  view.setUint32(28, 44100 * 4, true);
+  view.setUint16(32, 4, true);          // block align
+  view.setUint16(34, 16, true);
+  writeAscii(36, 'data');
+  view.setUint32(40, dataBytes, true);
+
+  for (let f = 0; f < numFrames; f++) {
+    view.setInt16(44 + f * 4, 32767, true);      // L = +1
+    view.setInt16(44 + f * 4 + 2, -32768, true); // R = -1
+  }
+
+  const header = parseWavHeader(buf);
+  const pcm = new DataView(buf, header.dataOffset, header.dataLength);
+  const peaks = computePeaks(pcm, 5, header.bitsPerSample, header.numChannels);
+  for (let b = 0; b < 5; b++) {
+    assert.ok(Math.abs(peaks[b * 2]) < 0.01, `bucket ${b} min not near zero`);
+    assert.ok(Math.abs(peaks[b * 2 + 1]) < 0.01, `bucket ${b} max not near zero`);
+  }
+});
+
+test('computePeaks: zero-frame PCM returns an all-zero peaks array', () => {
+  const pcm = new DataView(new ArrayBuffer(0));
+  const peaks = computePeaks(pcm, 4, 16, 1);
+  assert.equal(peaks.length, 8);
+  for (let i = 0; i < peaks.length; i++) {
+    assert.equal(peaks[i], 0);
+  }
+});
