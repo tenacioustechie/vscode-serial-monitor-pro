@@ -146,6 +146,8 @@ export class PlaybackPanel implements vscode.Disposable {
     const webview = this.panel.webview;
     const cssUri = webview.asWebviewUri(vscode.Uri.joinPath(this.extensionUri, 'media', 'playback.css'));
     const jsUri = webview.asWebviewUri(vscode.Uri.joinPath(this.extensionUri, 'media', 'playback.js'));
+    const waveformCoreUri = webview.asWebviewUri(vscode.Uri.joinPath(this.extensionUri, 'media', 'waveform-core.js'));
+    const waveformUri = webview.asWebviewUri(vscode.Uri.joinPath(this.extensionUri, 'media', 'waveform.js'));
 
     const nonce = getNonce();
 
@@ -174,11 +176,12 @@ export class PlaybackPanel implements vscode.Disposable {
         </div>
 
         <div class="timeline-container">
-            <div class="timeline-bar" id="timelineBar">
-                <div class="timeline-progress" id="timelineProgress"></div>
-                <div class="timeline-cursor" id="timelineCursor"></div>
-                <div class="timeline-markers" id="timelineMarkers"></div>
+            <div class="timeline-track" id="timelineTrack">
+                <canvas class="timeline-waveform" id="timelineWaveform"></canvas>
                 <div class="timeline-events" id="timelineEvents"></div>
+                <div class="timeline-progress" id="timelineProgress"></div>
+                <div class="timeline-markers" id="timelineMarkers"></div>
+                <div class="timeline-cursor" id="timelineCursor"></div>
             </div>
             <div class="timeline-labels">
                 <span id="currentTime">00:00.000</span>
@@ -235,6 +238,8 @@ export class PlaybackPanel implements vscode.Disposable {
 
     <audio id="audioPlayer" preload="auto"></audio>
 
+    <script nonce="${nonce}" src="${waveformCoreUri}"></script>
+    <script nonce="${nonce}" src="${waveformUri}"></script>
     <script nonce="${nonce}" src="${jsUri}"></script>
 </body>
 </html>`;
