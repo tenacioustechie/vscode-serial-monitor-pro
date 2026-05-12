@@ -5,7 +5,8 @@
 
   // DOM Elements
   const sessionNameEl = document.getElementById('sessionName');
-  const timelineBar = document.getElementById('timelineBar');
+  const timelineTrack = document.getElementById('timelineTrack');
+  const timelineWaveform = document.getElementById('timelineWaveform');
   const timelineProgress = document.getElementById('timelineProgress');
   const timelineCursor = document.getElementById('timelineCursor');
   const timelineMarkers = document.getElementById('timelineMarkers');
@@ -34,6 +35,7 @@
   let animationFrameId = null;
   let lastFrameTime = null;
   let nextEventIndex = 0;
+  let waveformController = null;
 
   // Signal ready when DOM is loaded
   vscode.postMessage({ type: 'ready' });
@@ -56,6 +58,9 @@
     if (session.audioUri) {
       audioPlayer.src = session.audioUri;
       audioIndicator.style.display = '';
+      attachWaveform(session.audioUri);
+    } else {
+      timelineTrack.classList.add('no-audio');
     }
 
     // Render event ticks on timeline
@@ -66,6 +71,23 @@
 
     // Render empty output state
     updateOutputDisplay();
+  }
+
+  function attachWaveform(audioUri) {
+    if (!window.SerialMonitorWaveform) {
+      console.warn('SerialMonitorWaveform not available; falling back to no-audio layout');
+      timelineTrack.classList.add('no-audio');
+      return;
+    }
+    window.SerialMonitorWaveform.attach({
+      canvas: timelineWaveform,
+      audioUri: audioUri,
+    }).then((controller) => {
+      waveformController = controller;
+    }).catch((err) => {
+      console.warn('Waveform load failed:', err);
+      timelineTrack.classList.add('no-audio');
+    });
   }
 
   function renderTimelineTicks() {
@@ -235,9 +257,9 @@
   });
 
   // Timeline click to seek
-  timelineBar.addEventListener('click', (e) => {
+  timelineTrack.addEventListener('click', (e) => {
     if (!session || !session.duration) { return; }
-    const rect = timelineBar.getBoundingClientRect();
+    const rect = timelineTrack.getBoundingClientRect();
     const pct = (e.clientX - rect.left) / rect.width;
     const targetMs = Math.max(0, Math.min(session.duration, pct * session.duration));
     seekTo(targetMs);
