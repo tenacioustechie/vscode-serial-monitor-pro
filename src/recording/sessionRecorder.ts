@@ -4,7 +4,6 @@ import { RecordingSession, RecordingState } from './types';
 import { SerialEventLogger } from './serialEventLogger';
 import { AudioRecorder } from './audioRecorder';
 import { SerialPortService } from '../serialPort/serialPortService';
-import { PortConfig } from '../serialPort/types';
 import { SessionStorage } from '../storage/sessionStorage';
 
 export class SessionRecorder implements vscode.Disposable {
@@ -51,7 +50,6 @@ export class SessionRecorder implements vscode.Disposable {
 
   async startRecording(
     portService: SerialPortService,
-    portConfig: PortConfig,
   ): Promise<string> {
     if (this.isRecording) {
       throw new Error('Already recording');

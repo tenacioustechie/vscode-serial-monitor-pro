@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as crypto from 'crypto';
-import { RecordingSession, SerialEvent, Marker } from '../recording/types';
+import { RecordingSession, Marker } from '../recording/types';
 import { SessionStorage } from '../storage/sessionStorage';
 
 export class PlaybackPanel implements vscode.Disposable {

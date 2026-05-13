@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
 import { SerialPortService } from '../serialPort/serialPortService';
-import { PortConfig, DEFAULT_PORT_CONFIG, STANDARD_BAUD_RATES } from '../serialPort/types';
+import { PortConfig, STANDARD_BAUD_RATES } from '../serialPort/types';
 import { SessionRecorder } from '../recording/sessionRecorder';
 import { PortTreeItem } from '../serialPort/serialPortManager';
 
@@ -180,10 +179,7 @@ export class MonitorPanel implements vscode.Disposable {
           return;
         }
         try {
-          await this.sessionRecorder.startRecording(
-            this.portService,
-            this.portService.config,
-          );
+          await this.sessionRecorder.startRecording(this.portService);
         } catch (err: any) {
           this.panel.webview.postMessage({
             type: 'error',
