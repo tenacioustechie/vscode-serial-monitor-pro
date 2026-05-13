@@ -4,6 +4,21 @@ import { PortConfig, STANDARD_BAUD_RATES } from '../serialPort/types';
 import { SessionRecorder } from '../recording/sessionRecorder';
 import { PortTreeItem } from '../serialPort/serialPortManager';
 
+type IncomingMessage =
+  | {
+      type: 'connect';
+      baudRate?: number;
+      dataBits?: 5 | 6 | 7 | 8;
+      stopBits?: 1 | 1.5 | 2;
+      parity?: 'none' | 'even' | 'odd' | 'mark' | 'space';
+      lineEnding?: string;
+    }
+  | { type: 'disconnect' }
+  | { type: 'send'; data: string }
+  | { type: 'startRecording' }
+  | { type: 'stopRecording'; name?: string }
+  | { type: 'updateConfig'; config: Omit<PortConfig, 'path'> };
+
 export class MonitorPanel implements vscode.Disposable {
   public static currentPanels: Map<string, MonitorPanel> = new Map();
 
@@ -28,7 +43,7 @@ export class MonitorPanel implements vscode.Disposable {
 
     // Handle messages from webview
     this.panel.webview.onDidReceiveMessage(
-      this.handleMessage.bind(this),
+      (raw: unknown) => { void this.handleMessage(raw as IncomingMessage); },
       undefined,
       this.disposables
     );
@@ -39,7 +54,7 @@ export class MonitorPanel implements vscode.Disposable {
     // Forward serial data to webview
     this.disposables.push(
       this.portService.onData((data) => {
-        this.panel.webview.postMessage({
+        void this.panel.webview.postMessage({
           type: 'serialData',
           data: data.toString('utf-8'),
           timestamp: Date.now(),
@@ -49,7 +64,7 @@ export class MonitorPanel implements vscode.Disposable {
 
     this.disposables.push(
       this.portService.onError((err) => {
-        this.panel.webview.postMessage({
+        void this.panel.webview.postMessage({
           type: 'error',
           message: err.message,
         });
@@ -58,20 +73,20 @@ export class MonitorPanel implements vscode.Disposable {
 
     this.disposables.push(
       this.portService.onClose(() => {
-        this.panel.webview.postMessage({ type: 'disconnected' });
+        void this.panel.webview.postMessage({ type: 'disconnected' });
       })
     );
 
     this.disposables.push(
       this.portService.onOpen(() => {
-        this.panel.webview.postMessage({ type: 'connected' });
+        void this.panel.webview.postMessage({ type: 'connected' });
       })
     );
 
     // Forward recording state changes
     this.disposables.push(
       this.sessionRecorder.onStateChange((state) => {
-        this.panel.webview.postMessage({
+        void this.panel.webview.postMessage({
           type: 'recordingState',
           state,
         });
@@ -108,7 +123,7 @@ export class MonitorPanel implements vscode.Disposable {
     return monitorPanel;
   }
 
-  private async handleMessage(message: any): Promise<void> {
+  private async handleMessage(message: IncomingMessage): Promise<void> {
     switch (message.type) {
       case 'connect': {
         const config = vscode.workspace.getConfiguration('serialMonitorPro');
@@ -123,15 +138,15 @@ export class MonitorPanel implements vscode.Disposable {
         };
         try {
           await this.portService.open(portConfig);
-          this.panel.webview.postMessage({
+          void this.panel.webview.postMessage({
             type: 'connected',
             config: portConfig,
             baudRates: [...STANDARD_BAUD_RATES, ...customBaudRates].sort((a, b) => a - b),
           });
-        } catch (err: any) {
-          this.panel.webview.postMessage({
+        } catch (err) {
+          void this.panel.webview.postMessage({
             type: 'error',
-            message: `Failed to open port: ${err.message}`,
+            message: `Failed to open port: ${errMessage(err)}`,
           });
         }
         break;
@@ -140,10 +155,10 @@ export class MonitorPanel implements vscode.Disposable {
       case 'disconnect': {
         try {
           await this.portService.close();
-        } catch (err: any) {
-          this.panel.webview.postMessage({
+        } catch (err) {
+          void this.panel.webview.postMessage({
             type: 'error',
-            message: `Failed to close port: ${err.message}`,
+            message: `Failed to close port: ${errMessage(err)}`,
           });
         }
         break;
@@ -156,15 +171,15 @@ export class MonitorPanel implements vscode.Disposable {
           if (this.sessionRecorder.isRecording) {
             this.sessionRecorder.logTx(message.data);
           }
-          this.panel.webview.postMessage({
+          void this.panel.webview.postMessage({
             type: 'txEcho',
             data: message.data,
             timestamp: Date.now(),
           });
-        } catch (err: any) {
-          this.panel.webview.postMessage({
+        } catch (err) {
+          void this.panel.webview.postMessage({
             type: 'error',
-            message: `Failed to send: ${err.message}`,
+            message: `Failed to send: ${errMessage(err)}`,
           });
         }
         break;
@@ -172,7 +187,7 @@ export class MonitorPanel implements vscode.Disposable {
 
       case 'startRecording': {
         if (!this.portService.isOpen || !this.portService.config) {
-          this.panel.webview.postMessage({
+          void this.panel.webview.postMessage({
             type: 'error',
             message: 'Cannot record: port is not connected',
           });
@@ -180,10 +195,10 @@ export class MonitorPanel implements vscode.Disposable {
         }
         try {
           await this.sessionRecorder.startRecording(this.portService);
-        } catch (err: any) {
-          this.panel.webview.postMessage({
+        } catch (err) {
+          void this.panel.webview.postMessage({
             type: 'error',
-            message: `Failed to start recording: ${err.message}`,
+            message: `Failed to start recording: ${errMessage(err)}`,
           });
         }
         break;
@@ -193,19 +208,19 @@ export class MonitorPanel implements vscode.Disposable {
         try {
           const session = await this.sessionRecorder.stopRecording(message.name);
           if (session) {
-            this.panel.webview.postMessage({
+            void this.panel.webview.postMessage({
               type: 'recordingSaved',
               sessionId: session.id,
               sessionName: session.name,
             });
-            vscode.window.showInformationMessage(
+            void vscode.window.showInformationMessage(
               `Recording saved: ${session.name} (${session.events.length} events)`
             );
           }
-        } catch (err: any) {
-          this.panel.webview.postMessage({
+        } catch (err) {
+          void this.panel.webview.postMessage({
             type: 'error',
-            message: `Failed to stop recording: ${err.message}`,
+            message: `Failed to stop recording: ${errMessage(err)}`,
           });
         }
         break;
@@ -248,7 +263,7 @@ export class MonitorPanel implements vscode.Disposable {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}';">
-    <link href="${cssUri}" rel="stylesheet">
+    <link href="${cssUri.toString()}" rel="stylesheet">
     <title>Serial Monitor: ${this.portPath}</title>
 </head>
 <body>
@@ -327,7 +342,7 @@ export class MonitorPanel implements vscode.Disposable {
         </div>
     </div>
 
-    <script nonce="${nonce}" src="${jsUri}"></script>
+    <script nonce="${nonce}" src="${jsUri.toString()}"></script>
 </body>
 </html>`;
   }
@@ -336,9 +351,13 @@ export class MonitorPanel implements vscode.Disposable {
     MonitorPanel.currentPanels.delete(this.portPath);
 
     this.portService.dispose();
-    this.disposables.forEach(d => d.dispose());
+    this.disposables.forEach(d => { d.dispose(); });
     this.panel.dispose();
   }
+}
+
+function errMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
 }
 
 function getNonce(): string {

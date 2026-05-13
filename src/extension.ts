@@ -29,7 +29,7 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 
   // Auto-refresh ports on activation
-  portManager.refresh();
+  void portManager.refresh();
 
   // Refresh the sessions tree whenever a recording is saved, regardless of
   // which UI surface triggered the stop (monitor panel button, command, etc.).
@@ -46,17 +46,17 @@ export async function activate(context: vscode.ExtensionContext) {
         MonitorPanel.createOrShow(context.extensionUri, item, sessionRecorder);
       } else {
         // Show quick pick to select port
-        showPortQuickPick(portManager, context.extensionUri, sessionRecorder);
+        void showPortQuickPick(portManager, context.extensionUri, sessionRecorder);
       }
     }),
 
     vscode.commands.registerCommand('serialMonitorPro.refreshPorts', () => {
-      portManager.refresh();
+      void portManager.refresh();
     }),
 
     vscode.commands.registerCommand('serialMonitorPro.startRecording', () => {
       // This is handled by the active monitor panel
-      vscode.window.showInformationMessage(
+      void vscode.window.showInformationMessage(
         'Use the Record button in an open Serial Monitor panel to start recording.'
       );
     }),
@@ -82,21 +82,24 @@ export async function activate(context: vscode.ExtensionContext) {
         // Show quick pick to select session
         const sessions = await sessionStorage.listSessions();
         if (sessions.length === 0) {
-          vscode.window.showInformationMessage('No recorded sessions found.');
+          void vscode.window.showInformationMessage('No recorded sessions found.');
           return;
         }
 
-        const picked = await vscode.window.showQuickPick(
-          sessions.map((s) => ({
-            label: s.name,
-            description: `${new Date(s.date).toLocaleString()} • ${s.hasAudio ? '🎤 ' : ''}${formatDuration(s.duration ?? 0)}`,
-            sessionId: s.id,
-          })),
-          { placeHolder: 'Select a recording session to play back' }
-        );
+        interface SessionQuickPickItem extends vscode.QuickPickItem {
+          sessionId: string;
+        }
+        const items: SessionQuickPickItem[] = sessions.map((s) => ({
+          label: s.name,
+          description: `${new Date(s.date).toLocaleString()} • ${s.hasAudio ? '🎤 ' : ''}${formatDuration(s.duration ?? 0)}`,
+          sessionId: s.id,
+        }));
+        const picked = await vscode.window.showQuickPick(items, {
+          placeHolder: 'Select a recording session to play back',
+        });
 
         if (picked) {
-          sessionId = (picked as any).sessionId;
+          sessionId = picked.sessionId;
         }
       }
 
@@ -114,7 +117,7 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     portTreeView,
     sessionTreeView,
-    portManager as any,
+    portManager,
     sessionTreeProvider,
     sessionStorage,
     sessionRecorder,
@@ -131,13 +134,13 @@ async function showPortQuickPick(
   const ports = await SerialPort.list();
 
   if (ports.length === 0) {
-    vscode.window.showWarningMessage('No serial ports found.');
+    void vscode.window.showWarningMessage('No serial ports found.');
     return;
   }
 
-  const items: vscode.QuickPickItem[] = ports.map((p: any) => ({
-    label: p.path as string,
-    description: (p.manufacturer ?? '') as string,
+  const items: vscode.QuickPickItem[] = ports.map((p) => ({
+    label: p.path,
+    description: p.manufacturer ?? '',
     detail: p.serialNumber ? `SN: ${p.serialNumber}` : undefined,
   }));
 

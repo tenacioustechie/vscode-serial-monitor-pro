@@ -4,6 +4,13 @@ import * as crypto from 'crypto';
 import { RecordingSession, Marker } from '../recording/types';
 import { SessionStorage } from '../storage/sessionStorage';
 
+type IncomingMessage =
+  | { type: 'ready' }
+  | { type: 'addMarker'; id: string; timestamp: number; label: string; color?: string }
+  | { type: 'removeMarker'; id: string }
+  | { type: 'renameMarker'; id: string; label: string }
+  | { type: 'renameSession'; name: string };
+
 export class PlaybackPanel implements vscode.Disposable {
   private static currentPanels: Map<string, PlaybackPanel> = new Map();
 
@@ -23,7 +30,7 @@ export class PlaybackPanel implements vscode.Disposable {
     this.panel.webview.html = this.getHtmlForWebview();
 
     this.panel.webview.onDidReceiveMessage(
-      this.handleMessage.bind(this),
+      (raw: unknown) => { void this.handleMessage(raw as IncomingMessage); },
       undefined,
       this.disposables
     );
@@ -44,7 +51,7 @@ export class PlaybackPanel implements vscode.Disposable {
 
     const session = await sessionStorage.loadSession(sessionId);
     if (!session) {
-      vscode.window.showErrorMessage(`Session not found: ${sessionId}`);
+      void vscode.window.showErrorMessage(`Session not found: ${sessionId}`);
       return undefined;
     }
 
@@ -79,7 +86,7 @@ export class PlaybackPanel implements vscode.Disposable {
     return playbackPanel;
   }
 
-  private async handleMessage(message: any): Promise<void> {
+  private async handleMessage(message: IncomingMessage): Promise<void> {
     switch (message.type) {
       case 'ready': {
         // Send session data to webview
@@ -94,7 +101,7 @@ export class PlaybackPanel implements vscode.Disposable {
           ).toString()
           : undefined;
 
-        this.panel.webview.postMessage({
+        void this.panel.webview.postMessage({
           type: 'sessionData',
           session: {
             ...this.session,
@@ -157,7 +164,7 @@ export class PlaybackPanel implements vscode.Disposable {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}'; media-src ${webview.cspSource}; connect-src ${webview.cspSource};">
-    <link href="${cssUri}" rel="stylesheet">
+    <link href="${cssUri.toString()}" rel="stylesheet">
     <title>Session Playback</title>
 </head>
 <body>
@@ -238,16 +245,16 @@ export class PlaybackPanel implements vscode.Disposable {
 
     <audio id="audioPlayer" preload="auto"></audio>
 
-    <script nonce="${nonce}" src="${waveformCoreUri}"></script>
-    <script nonce="${nonce}" src="${waveformUri}"></script>
-    <script nonce="${nonce}" src="${jsUri}"></script>
+    <script nonce="${nonce}" src="${waveformCoreUri.toString()}"></script>
+    <script nonce="${nonce}" src="${waveformUri.toString()}"></script>
+    <script nonce="${nonce}" src="${jsUri.toString()}"></script>
 </body>
 </html>`;
   }
 
   dispose(): void {
     PlaybackPanel.currentPanels.delete(this.session.id);
-    this.disposables.forEach(d => d.dispose());
+    this.disposables.forEach(d => { d.dispose(); });
     this.panel.dispose();
   }
 }

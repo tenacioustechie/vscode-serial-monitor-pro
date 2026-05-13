@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
+import * as fsp from 'fs/promises';
 import * as path from 'path';
 import { RecordingSession } from '../recording/types';
 
@@ -37,50 +38,48 @@ export class SessionStorage implements vscode.Disposable {
 
   async saveSession(session: RecordingSession): Promise<void> {
     const dir = this.getSessionDir(session.id);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-
+    await fsp.mkdir(dir, { recursive: true });
     const manifestPath = this.getManifestPath(session.id);
-    fs.writeFileSync(manifestPath, JSON.stringify(session, null, 2), 'utf-8');
+    await fsp.writeFile(manifestPath, JSON.stringify(session, null, 2), 'utf-8');
   }
 
   async loadSession(sessionId: string): Promise<RecordingSession | undefined> {
     const manifestPath = this.getManifestPath(sessionId);
-    if (!fs.existsSync(manifestPath)) {
-      return undefined;
+    try {
+      const data = await fsp.readFile(manifestPath, 'utf-8');
+      return JSON.parse(data) as RecordingSession;
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code === 'ENOENT') { return undefined; }
+      throw err;
     }
-
-    const data = fs.readFileSync(manifestPath, 'utf-8');
-    return JSON.parse(data) as RecordingSession;
   }
 
   async listSessions(): Promise<{ id: string; name: string; date: number; duration?: number; hasAudio: boolean }[]> {
-    if (!fs.existsSync(this.storagePath)) {
-      return [];
+    let entries: fs.Dirent[];
+    try {
+      entries = await fsp.readdir(this.storagePath, { withFileTypes: true });
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code === 'ENOENT') { return []; }
+      throw err;
     }
-
-    const entries = fs.readdirSync(this.storagePath, { withFileTypes: true });
     const sessions: { id: string; name: string; date: number; duration?: number; hasAudio: boolean }[] = [];
 
     for (const entry of entries) {
       if (entry.isDirectory() && entry.name.startsWith('session-')) {
         const sessionId = entry.name.replace('session-', '');
         const manifestPath = this.getManifestPath(sessionId);
-        if (fs.existsSync(manifestPath)) {
-          try {
-            const data = fs.readFileSync(manifestPath, 'utf-8');
-            const session = JSON.parse(data) as RecordingSession;
-            sessions.push({
-              id: session.id,
-              name: session.name,
-              date: session.startTime,
-              duration: session.duration,
-              hasAudio: !!session.audioFile,
-            });
-          } catch {
-            // Skip corrupt sessions
-          }
+        try {
+          const data = await fsp.readFile(manifestPath, 'utf-8');
+          const session = JSON.parse(data) as RecordingSession;
+          sessions.push({
+            id: session.id,
+            name: session.name,
+            date: session.startTime,
+            duration: session.duration,
+            hasAudio: !!session.audioFile,
+          });
+        } catch {
+          // Skip missing or corrupt sessions
         }
       }
     }
@@ -90,9 +89,7 @@ export class SessionStorage implements vscode.Disposable {
 
   async deleteSession(sessionId: string): Promise<void> {
     const dir = this.getSessionDir(sessionId);
-    if (fs.existsSync(dir)) {
-      fs.rmSync(dir, { recursive: true, force: true });
-    }
+    await fsp.rm(dir, { recursive: true, force: true });
   }
 
   dispose(): void {
@@ -106,7 +103,7 @@ export class SessionTreeProvider implements vscode.TreeDataProvider<SessionTreeI
 
   constructor(private readonly storage: SessionStorage) { }
 
-  async refresh(): Promise<void> {
+  refresh(): void {
     this._onDidChangeTreeData.fire();
   }
 
