@@ -73,14 +73,31 @@
     if (!canvas) { throw new Error('canvas required'); }
     if (!audioUri) { throw new Error('audioUri required'); }
 
-    const response = await fetch(audioUri);
+    console.log('[wave-diag] fetch ->', audioUri);
+    let response;
+    try {
+      response = await fetch(audioUri);
+    } catch (e) {
+      console.error('[wave-diag] fetch threw (likely CSP connect-src block):', e);
+      throw e;
+    }
+    console.log('[wave-diag] fetch response', { ok: response.ok, status: response.status });
     if (!response.ok) {
       throw new Error('Failed to fetch audio: ' + response.status);
     }
     const buffer = await response.arrayBuffer();
+    console.log('[wave-diag] arrayBuffer bytes =', buffer.byteLength);
     const header = Core.parseWavHeader(buffer);
+    console.log('[wave-diag] wav header', header);
     const pcm = new DataView(buffer, header.dataOffset, header.dataLength);
     const peaks = Core.computePeaks(pcm, BUCKET_COUNT, header.bitsPerSample, header.numChannels);
+    // Quick sanity: look at peak amplitude range.
+    let maxAbs = 0;
+    for (let i = 0; i < peaks.length; i++) {
+      const a = Math.abs(peaks[i]);
+      if (a > maxAbs) { maxAbs = a; }
+    }
+    console.log('[wave-diag] peaks computed, len=' + peaks.length + ' maxAbs=' + maxAbs.toFixed(4));
 
     drawCanvas(canvas, peaks);
 

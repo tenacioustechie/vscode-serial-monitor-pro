@@ -54,12 +54,25 @@
   function initializePlayback() {
     if (!session) { return; }
 
+    // [TEMP DIAG] Confirm scripts loaded and session shape.
+    console.log('[wave-diag] initializePlayback', {
+      hasGlobal: !!window.SerialMonitorWaveform,
+      hasCore: !!window.WaveformCore,
+      audioUri: session.audioUri,
+      audioFile: session.audioFile,
+      canvas: timelineWaveform && { w: timelineWaveform.clientWidth, h: timelineWaveform.clientHeight },
+    });
+    showWaveformStatus('global=' + !!window.SerialMonitorWaveform
+      + ' core=' + !!window.WaveformCore
+      + ' uri=' + (session.audioUri ? 'yes' : 'no'));
+
     // Set up audio if available
     if (session.audioUri) {
       audioPlayer.src = session.audioUri;
       audioIndicator.style.display = '';
       attachWaveform(session.audioUri);
     } else {
+      showWaveformStatus('session has no audioUri (no audio file recorded)', true);
       timelineTrack.classList.add('no-audio');
     }
 
@@ -75,19 +88,43 @@
 
   function attachWaveform(audioUri) {
     if (!window.SerialMonitorWaveform) {
-      console.warn('SerialMonitorWaveform not available; falling back to no-audio layout');
+      console.warn('[wave-diag] SerialMonitorWaveform not available; falling back to no-audio layout');
+      showWaveformStatus('SerialMonitorWaveform global missing', true);
       timelineTrack.classList.add('no-audio');
       return;
     }
+    console.log('[wave-diag] attachWaveform: starting fetch', audioUri);
+    showWaveformStatus('fetching audio...');
     window.SerialMonitorWaveform.attach({
       canvas: timelineWaveform,
       audioUri: audioUri,
     }).then((controller) => {
       waveformController = controller;
+      console.log('[wave-diag] attach success', {
+        cw: timelineWaveform.clientWidth,
+        ch: timelineWaveform.clientHeight,
+        canvasW: timelineWaveform.width,
+        canvasH: timelineWaveform.height,
+      });
+      showWaveformStatus('attached ' + timelineWaveform.clientWidth + 'x' + timelineWaveform.clientHeight);
     }).catch((err) => {
-      console.warn('Waveform load failed:', err);
+      console.warn('[wave-diag] Waveform load failed:', err);
+      showWaveformStatus('load failed: ' + (err && err.message ? err.message : String(err)), true);
       timelineTrack.classList.add('no-audio');
     });
+  }
+
+  // [TEMP DIAG] On-page status banner for waveform debugging.
+  function showWaveformStatus(text, isError) {
+    let banner = document.getElementById('waveformStatus');
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'waveformStatus';
+      banner.style.cssText = 'position:absolute;top:4px;left:8px;font-size:10px;font-family:monospace;padding:2px 6px;border-radius:3px;z-index:20;pointer-events:none;color:#fff;max-width:calc(100% - 16px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+      timelineTrack.appendChild(banner);
+    }
+    banner.textContent = '[wave] ' + text;
+    banner.style.background = isError ? 'rgba(180,40,40,0.9)' : 'rgba(0,0,0,0.7)';
   }
 
   function renderTimelineTicks() {
