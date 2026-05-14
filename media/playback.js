@@ -54,11 +54,14 @@
   function initializePlayback() {
     if (!session) { return; }
 
-    // Set up audio if available
-    if (session.audioUri) {
-      audioPlayer.src = session.audioUri;
+    // Validate audio URI before assigning to a DOM .src sink. webview.asWebviewUri()
+    // produces https:// URIs on supported VS Code versions; rejecting anything else
+    // blocks javascript:/data: schemes that CodeQL flags as XSS sinks.
+    const safeAudioUri = session.audioUri ? safeMediaUri(session.audioUri) : null;
+    if (safeAudioUri) {
+      audioPlayer.src = safeAudioUri;
       audioIndicator.style.display = '';
-      attachWaveform(session.audioUri);
+      attachWaveform(safeAudioUri);
     } else {
       timelineTrack.classList.add('no-audio');
     }
@@ -428,6 +431,20 @@
       if (session.events[i].timestamp > currentTimeMs) { break; }
       appendEvent(session.events[i]);
     }
+  }
+
+  function safeMediaUri(uri) {
+    if (typeof uri !== 'string') { return null; }
+    let parsed;
+    try {
+      parsed = new URL(uri);
+    } catch {
+      return null;
+    }
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+      return null;
+    }
+    return parsed.href;
   }
 
   function formatTime(ms) {
