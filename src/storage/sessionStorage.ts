@@ -47,7 +47,9 @@ export class SessionStorage implements vscode.Disposable {
     const manifestPath = this.getManifestPath(sessionId);
     try {
       const data = await fsp.readFile(manifestPath, 'utf-8');
-      return JSON.parse(data) as RecordingSession;
+      const session = JSON.parse(data) as RecordingSession;
+      sanitizeSession(session);
+      return session;
     } catch (err) {
       if ((err as NodeJS.ErrnoException).code === 'ENOENT') { return undefined; }
       throw err;
@@ -147,6 +149,20 @@ export class SessionTreeItem extends vscode.TreeItem {
       title: 'Open Playback',
       arguments: [this],
     };
+  }
+}
+
+const HEX_COLOR_RE = /^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
+
+function sanitizeSession(session: RecordingSession): void {
+  if (!Array.isArray(session.markers)) {
+    session.markers = [];
+    return;
+  }
+  for (const marker of session.markers) {
+    if (marker.color !== undefined && !HEX_COLOR_RE.test(marker.color)) {
+      marker.color = undefined;
+    }
   }
 }
 
