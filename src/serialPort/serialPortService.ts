@@ -43,7 +43,7 @@ export class SerialPortService extends vscode.Disposable {
         path: config.path,
         baudRate: config.baudRate,
         dataBits: config.dataBits,
-        stopBits: config.stopBits === 1.5 ? 1 : config.stopBits as 1 | 2,
+        stopBits: config.stopBits === 1.5 ? 1 : config.stopBits,
         parity: config.parity,
         autoOpen: false,
       });

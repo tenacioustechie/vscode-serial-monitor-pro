@@ -4,7 +4,6 @@ import { RecordingSession, RecordingState } from './types';
 import { SerialEventLogger } from './serialEventLogger';
 import { AudioRecorder } from './audioRecorder';
 import { SerialPortService } from '../serialPort/serialPortService';
-import { PortConfig } from '../serialPort/types';
 import { SessionStorage } from '../storage/sessionStorage';
 
 export class SessionRecorder implements vscode.Disposable {
@@ -27,7 +26,7 @@ export class SessionRecorder implements vscode.Disposable {
   async initialize(): Promise<void> {
     this.hasSox = await AudioRecorder.isSoxAvailable();
     if (!this.hasSox) {
-      vscode.window.showWarningMessage(
+      void vscode.window.showWarningMessage(
         'SoX is not installed. Audio recording will be disabled. ' +
         'Install SoX to enable audio commentary: brew install sox (macOS), ' +
         'apt install sox (Linux), choco install sox.portable (Windows).'
@@ -51,7 +50,6 @@ export class SessionRecorder implements vscode.Disposable {
 
   async startRecording(
     portService: SerialPortService,
-    portConfig: PortConfig,
   ): Promise<string> {
     if (this.isRecording) {
       throw new Error('Already recording');
@@ -72,8 +70,9 @@ export class SessionRecorder implements vscode.Disposable {
       try {
         await this.audioRecorder.start(audioPath);
       } catch (err) {
-        vscode.window.showWarningMessage(
-          `Audio recording failed to start: ${err}. Session will continue without audio.`
+        const msg = err instanceof Error ? err.message : String(err);
+        void vscode.window.showWarningMessage(
+          `Audio recording failed to start: ${msg}. Session will continue without audio.`
         );
         this.audioRecorder = undefined;
       }

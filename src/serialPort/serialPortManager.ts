@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { SerialPort } from 'serialport';
 import { PortInfo } from './types';
 
-export class SerialPortManager implements vscode.TreeDataProvider<PortTreeItem> {
+export class SerialPortManager implements vscode.TreeDataProvider<PortTreeItem>, vscode.Disposable {
   private _onDidChangeTreeData = new vscode.EventEmitter<PortTreeItem | undefined | null | void>();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
@@ -22,7 +22,8 @@ export class SerialPortManager implements vscode.TreeDataProvider<PortTreeItem> 
       }));
     } catch (err) {
       this.ports = [];
-      vscode.window.showErrorMessage(`Failed to list serial ports: ${err}`);
+      const msg = err instanceof Error ? err.message : String(err);
+      void vscode.window.showErrorMessage(`Failed to list serial ports: ${msg}`);
     }
     this._onDidChangeTreeData.fire();
   }

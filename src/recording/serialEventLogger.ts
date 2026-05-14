@@ -53,7 +53,7 @@ export class SerialEventLogger implements vscode.Disposable {
 
   stop(): SerialEvent[] {
     this._isLogging = false;
-    this.disposables.forEach(d => d.dispose());
+    this.disposables.forEach(d => { d.dispose(); });
     this.disposables = [];
     return [...this.events];
   }

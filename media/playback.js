@@ -168,10 +168,16 @@
         const pin = document.createElement('div');
         pin.className = 'timeline-marker';
         pin.style.left = pct + '%';
-        pin.innerHTML = `
-                    <div class="timeline-marker-line" style="background: ${marker.color || '#f6ad55'}"></div>
-                    <div class="timeline-marker-tooltip">${formatTime(marker.timestamp)} - ${escapeHtml(marker.label)}</div>
-                `;
+
+        const pinLine = document.createElement('div');
+        pinLine.className = 'timeline-marker-line';
+        pinLine.style.background = marker.color || '#f6ad55';
+
+        const pinTooltip = document.createElement('div');
+        pinTooltip.className = 'timeline-marker-tooltip';
+        pinTooltip.textContent = `${formatTime(marker.timestamp)} - ${marker.label}`;
+
+        pin.append(pinLine, pinTooltip);
         pin.addEventListener('click', () => seekTo(marker.timestamp));
         timelineMarkers.appendChild(pin);
       }
@@ -179,11 +185,21 @@
       // List item
       const item = document.createElement('div');
       item.className = 'marker-item';
-      item.innerHTML = `
-                <span class="marker-time">${formatTime(marker.timestamp)}</span>
-                <span class="marker-label">${escapeHtml(marker.label)}</span>
-                <button class="marker-delete" title="Remove marker">✕</button>
-            `;
+
+      const timeSpan = document.createElement('span');
+      timeSpan.className = 'marker-time';
+      timeSpan.textContent = formatTime(marker.timestamp);
+
+      const labelSpan = document.createElement('span');
+      labelSpan.className = 'marker-label';
+      labelSpan.textContent = marker.label;
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'marker-delete';
+      deleteBtn.title = 'Remove marker';
+      deleteBtn.textContent = '✕';
+
+      item.append(timeSpan, labelSpan, deleteBtn);
       item.addEventListener('click', (e) => {
         if (
           !e.target.classList.contains('marker-delete') &&
@@ -424,9 +440,4 @@
       String(millis).padStart(3, '0');
   }
 
-  function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  }
 })();
