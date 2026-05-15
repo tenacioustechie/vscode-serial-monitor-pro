@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git ls-tree *)",
+      "Bash(git -C .worktrees/docs-site status)",
+      "Bash(git -C .worktrees/docs-site log --oneline main..HEAD)",
+      "Bash(git -C .claude/worktrees/feat-waveform-timeline status)",
+      "Bash(git -C .claude/worktrees/feat-waveform-timeline log --oneline main..HEAD)",
+      "Bash(git log *)",
+      "Bash(git ls-remote *)"
+    ]
+  }
+}

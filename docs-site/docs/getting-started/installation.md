@@ -16,7 +16,7 @@ Install Serial Monitor Pro from the VS Code Marketplace:
 Or install directly from the command line:
 
 ```bash
-code --install-extension serial-monitor-pro.vscode-serial-monitor-pro
+code --install-extension millsit.vscode-serial-monitor-pro
 ```
 
 ## SoX — Audio Recording (Optional)

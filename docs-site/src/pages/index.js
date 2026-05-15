@@ -21,7 +21,7 @@ function HeroSection() {
         <div className={styles.heroButtons}>
           <Link
             className={styles.btnPrimary}
-            href="https://marketplace.visualstudio.com/items?itemName=serial-monitor-pro.vscode-serial-monitor-pro"
+            href="https://marketplace.visualstudio.com/items?itemName=millsit.vscode-serial-monitor-pro"
           >
             Install from Marketplace
           </Link>
