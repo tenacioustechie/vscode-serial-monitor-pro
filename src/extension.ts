@@ -8,119 +8,133 @@ import { PlaybackPanel } from './playback/playbackPanel';
 export async function activate(context: vscode.ExtensionContext) {
   console.log('Serial Monitor Pro is now active');
 
-  // Initialize storage
-  const sessionStorage = new SessionStorage(context);
-
-  // Initialize session recorder
-  const sessionRecorder = new SessionRecorder(sessionStorage);
-  await sessionRecorder.initialize();
-
-  // Initialize serial port manager (tree view)
-  const portManager = new SerialPortManager();
-  const portTreeView = vscode.window.createTreeView('serialMonitorPorts', {
-    treeDataProvider: portManager,
+  // Register both tree views up front with a placeholder provider so the UI
+  // never shows VS Code's cryptic "no data provider registered" error, even
+  // if downstream initialization throws.
+  const emptyProvider: vscode.TreeDataProvider<vscode.TreeItem> = {
+    getTreeItem: (e) => e,
+    getChildren: () => Promise.resolve([]),
+  };
+  let portTreeView = vscode.window.createTreeView('serialMonitorPorts', {
+    treeDataProvider: emptyProvider,
   });
-
-  // Initialize session tree view
-  const sessionTreeProvider = new SessionTreeProvider(sessionStorage);
-  const sessionTreeView = vscode.window.createTreeView('serialMonitorSessions', {
-    treeDataProvider: sessionTreeProvider,
+  let sessionTreeView = vscode.window.createTreeView('serialMonitorSessions', {
+    treeDataProvider: emptyProvider,
   });
+  context.subscriptions.push(portTreeView, sessionTreeView);
 
-  // Auto-refresh ports on activation
-  void portManager.refresh();
+  try {
+    const sessionStorage = new SessionStorage(context);
 
-  // Refresh the sessions tree whenever a recording is saved, regardless of
-  // which UI surface triggered the stop (monitor panel button, command, etc.).
-  context.subscriptions.push(
-    sessionRecorder.onSessionSaved(() => {
-      sessionTreeProvider.refresh();
-    }),
-  );
+    const sessionRecorder = new SessionRecorder(sessionStorage);
+    await sessionRecorder.initialize();
 
-  // Register commands
-  context.subscriptions.push(
-    vscode.commands.registerCommand('serialMonitorPro.openMonitor', (item?: PortTreeItem) => {
-      if (item && item instanceof PortTreeItem && !item.isDetail) {
-        MonitorPanel.createOrShow(context.extensionUri, item, sessionRecorder);
-      } else {
-        // Show quick pick to select port
-        void showPortQuickPick(portManager, context.extensionUri, sessionRecorder);
-      }
-    }),
+    // Replace placeholder providers with the real ones.
+    const portManager = new SerialPortManager();
+    portTreeView.dispose();
+    portTreeView = vscode.window.createTreeView('serialMonitorPorts', {
+      treeDataProvider: portManager,
+    });
 
-    vscode.commands.registerCommand('serialMonitorPro.refreshPorts', () => {
-      void portManager.refresh();
-    }),
+    const sessionTreeProvider = new SessionTreeProvider(sessionStorage);
+    sessionTreeView.dispose();
+    sessionTreeView = vscode.window.createTreeView('serialMonitorSessions', {
+      treeDataProvider: sessionTreeProvider,
+    });
 
-    vscode.commands.registerCommand('serialMonitorPro.startRecording', () => {
-      // This is handled by the active monitor panel
-      void vscode.window.showInformationMessage(
-        'Use the Record button in an open Serial Monitor panel to start recording.'
-      );
-    }),
+    void portManager.refresh();
 
-    vscode.commands.registerCommand('serialMonitorPro.stopRecording', async () => {
-      if (sessionRecorder.isRecording) {
-        const name = await vscode.window.showInputBox({
-          prompt: 'Enter a name for this recording session',
-          placeHolder: 'Session name',
-        });
-        await sessionRecorder.stopRecording(name ?? undefined);
-      }
-    }),
+    context.subscriptions.push(
+      sessionRecorder.onSessionSaved(() => {
+        sessionTreeProvider.refresh();
+      }),
+    );
 
-    vscode.commands.registerCommand('serialMonitorPro.openPlayback', async (item?: SessionTreeItem | string) => {
-      let sessionId: string | undefined;
+    context.subscriptions.push(
+      vscode.commands.registerCommand('serialMonitorPro.openMonitor', (item?: PortTreeItem) => {
+        if (item && item instanceof PortTreeItem && !item.isDetail) {
+          MonitorPanel.createOrShow(context.extensionUri, item, sessionRecorder);
+        } else {
+          void showPortQuickPick(portManager, context.extensionUri, sessionRecorder);
+        }
+      }),
 
-      if (item instanceof SessionTreeItem) {
-        sessionId = item.sessionId;
-      } else if (typeof item === 'string') {
-        sessionId = item;
-      } else {
-        // Show quick pick to select session
-        const sessions = await sessionStorage.listSessions();
-        if (sessions.length === 0) {
-          void vscode.window.showInformationMessage('No recorded sessions found.');
-          return;
+      vscode.commands.registerCommand('serialMonitorPro.refreshPorts', () => {
+        void portManager.refresh();
+      }),
+
+      vscode.commands.registerCommand('serialMonitorPro.startRecording', () => {
+        void vscode.window.showInformationMessage(
+          'Use the Record button in an open Serial Monitor panel to start recording.'
+        );
+      }),
+
+      vscode.commands.registerCommand('serialMonitorPro.stopRecording', async () => {
+        if (sessionRecorder.isRecording) {
+          const name = await vscode.window.showInputBox({
+            prompt: 'Enter a name for this recording session',
+            placeHolder: 'Session name',
+          });
+          await sessionRecorder.stopRecording(name ?? undefined);
+        }
+      }),
+
+      vscode.commands.registerCommand('serialMonitorPro.openPlayback', async (item?: SessionTreeItem | string) => {
+        let sessionId: string | undefined;
+
+        if (item instanceof SessionTreeItem) {
+          sessionId = item.sessionId;
+        } else if (typeof item === 'string') {
+          sessionId = item;
+        } else {
+          const sessions = await sessionStorage.listSessions();
+          if (sessions.length === 0) {
+            void vscode.window.showInformationMessage('No recorded sessions found.');
+            return;
+          }
+
+          interface SessionQuickPickItem extends vscode.QuickPickItem {
+            sessionId: string;
+          }
+          const items: SessionQuickPickItem[] = sessions.map((s) => ({
+            label: s.name,
+            description: `${new Date(s.date).toLocaleString()} • ${s.hasAudio ? '🎤 ' : ''}${formatDuration(s.duration ?? 0)}`,
+            sessionId: s.id,
+          }));
+          const picked = await vscode.window.showQuickPick(items, {
+            placeHolder: 'Select a recording session to play back',
+          });
+
+          if (picked) {
+            sessionId = picked.sessionId;
+          }
         }
 
-        interface SessionQuickPickItem extends vscode.QuickPickItem {
-          sessionId: string;
+        if (sessionId) {
+          await PlaybackPanel.createOrShow(context.extensionUri, sessionId, sessionStorage);
         }
-        const items: SessionQuickPickItem[] = sessions.map((s) => ({
-          label: s.name,
-          description: `${new Date(s.date).toLocaleString()} • ${s.hasAudio ? '🎤 ' : ''}${formatDuration(s.duration ?? 0)}`,
-          sessionId: s.id,
-        }));
-        const picked = await vscode.window.showQuickPick(items, {
-          placeHolder: 'Select a recording session to play back',
-        });
+      }),
 
-        if (picked) {
-          sessionId = picked.sessionId;
-        }
-      }
+      vscode.commands.registerCommand('serialMonitorPro.refreshSessions', () => {
+        sessionTreeProvider.refresh();
+      }),
+    );
 
-      if (sessionId) {
-        await PlaybackPanel.createOrShow(context.extensionUri, sessionId, sessionStorage);
-      }
-    }),
-
-    vscode.commands.registerCommand('serialMonitorPro.refreshSessions', () => {
-      sessionTreeProvider.refresh();
-    }),
-  );
-
-  // Register disposables
-  context.subscriptions.push(
-    portTreeView,
-    sessionTreeView,
-    portManager,
-    sessionTreeProvider,
-    sessionStorage,
-    sessionRecorder,
-  );
+    context.subscriptions.push(
+      portTreeView,
+      sessionTreeView,
+      portManager,
+      sessionTreeProvider,
+      sessionStorage,
+      sessionRecorder,
+    );
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    void vscode.window.showErrorMessage(
+      `Serial Monitor Pro failed to activate fully: ${msg}. The extension is loaded with limited functionality.`,
+    );
+    console.error('Serial Monitor Pro activation error:', err);
+  }
 }
 
 async function showPortQuickPick(
