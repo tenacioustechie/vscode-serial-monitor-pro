@@ -107,7 +107,7 @@ const config = {
               },
               {
                 label: 'VS Code Marketplace',
-                href: 'https://marketplace.visualstudio.com/items?itemName=serial-monitor-pro.vscode-serial-monitor-pro',
+                href: 'https://marketplace.visualstudio.com/items?itemName=millsit.vscode-serial-monitor-pro',
               },
               { label: 'Changelog', to: '/docs/project/changelog' },
               { label: 'Contributing', to: '/docs/project/contributing' },

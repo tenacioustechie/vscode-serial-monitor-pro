@@ -217,7 +217,7 @@
                 },
                 {
                   label: 'VS Code Marketplace',
-                  href: 'https://marketplace.visualstudio.com/items?itemName=serial-monitor-pro.vscode-serial-monitor-pro',
+                  href: 'https://marketplace.visualstudio.com/items?itemName=millsit.vscode-serial-monitor-pro',
                 },
                 { label: 'Changelog', to: '/docs/project/changelog' },
                 { label: 'Contributing', to: '/docs/project/contributing' },
@@ -448,7 +448,7 @@
           <div className={styles.heroButtons}>
             <Link
               className={styles.btnPrimary}
-              href="https://marketplace.visualstudio.com/items?itemName=serial-monitor-pro.vscode-serial-monitor-pro"
+              href="https://marketplace.visualstudio.com/items?itemName=millsit.vscode-serial-monitor-pro"
             >
               Install from Marketplace
             </Link>
@@ -732,7 +732,7 @@
   Or install directly from the command line:
 
   ```bash
-  code --install-extension serial-monitor-pro.vscode-serial-monitor-pro
+  code --install-extension millsit.vscode-serial-monitor-pro
   ```
 
   ## SoX — Audio Recording (Optional)
