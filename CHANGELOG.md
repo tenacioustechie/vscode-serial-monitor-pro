@@ -1,10 +1,6 @@
----
-sidebar_position: 1
----
-
 # Changelog
 
-All notable changes to Serial Monitor Pro are documented here.
+All notable changes to Serial Monitor Pro are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.3.0] — 2026-05-15
 
@@ -15,26 +11,27 @@ This release focuses on the playback experience: the timeline now shows an audio
 - **Audio waveform timeline.** The playback timeline now renders the session's audio commentary as a 96-pixel waveform track, with the RX/TX event ticks moved into a slim 8-pixel strip below. Waveforms are decoded from the session's `audio.wav` in the webview, peak-bucketed, and drawn to a canvas — so the visualization scales with the timeline width and updates as you resize the panel.
 - **No-audio fallback for playback.** Sessions recorded without SoX (or with the microphone unavailable) render an empty waveform track instead of failing to load, keeping the rest of the playback UI fully functional.
 - **Inline marker rename.** Click a marker label in the marker list to edit it in place. Enter or blur saves, Escape cancels, empty/unchanged values revert to the previous label.
-- **Auto-numbered marker labels.** New markers are added immediately with a default `Marker N` label, ready to be renamed in the list.
+- **Auto-numbered marker labels.** New markers are added immediately with a default `Marker N` label, ready to be renamed in the list (see the marker-add fix below for why this changed).
 - **Stable marker IDs.** Markers now carry an optional `id` field in `manifest.json` for stable identification across rename and remove operations. Sessions saved before v0.3.0 have IDs back-filled automatically on load — existing recordings continue to work without any migration step.
 - **Wider marker pin hit area.** Marker pins on the timeline now have a 16-pixel hit area (up from 2 pixels) while keeping the visible glyph centered on the marker timestamp, making them much easier to grab.
-- **Automated Marketplace publishing.** Pushing a version tag on `main` now triggers a GitHub Actions workflow that builds and publishes the extension to the VS Code Marketplace.
+- **Automated Marketplace publishing.** Pushing a version tag on `main` now triggers a GitHub Actions workflow that builds and publishes the extension to the VS Code Marketplace. See [`DEPLOYMENT.md`](./DEPLOYMENT.md) for details.
 
 ### Fixed
 
 - **Recorded Sessions list now refreshes after a recording finishes** ([#2](https://github.com/tenacioustechie/vscode-serial-monitor-pro/issues/2)). Previously the new session would not appear in the sidebar until you manually clicked refresh.
 - **Adding markers in playback works again.** The old "Add Marker" flow called `window.prompt` for a label, but `window.prompt` is blocked in VS Code webviews and silently returns `null`, so the handler bailed out before sending anything to the extension host. Markers are now added immediately with an auto-numbered label and renamed inline.
-- **CSP error that prevented the waveform from loading.** The playback webview's Content Security Policy was adjusted to allow the new `waveform.js` resource while still blocking inline scripts.
+- **CSP error that prevented the waveform from loading.** The playback webview's Content Security Policy was tightened to allow the new `waveform.js` resource while still blocking inline scripts.
 
 ### Security
 
-- **Fixed two client-side XSS issues in the playback webview** flagged by CodeQL. Marker labels and other session-derived strings are now rendered via safe DOM APIs rather than `innerHTML`, and the session storage layer rejects manifests with unexpected shapes.
-- **Locked down GitHub Actions permissions** for the Marketplace publish workflow to the minimum required (`contents: read`).
+- **Fixed two client-side XSS issues in `media/playback.js`** flagged by CodeQL. Marker labels and other session-derived strings are now rendered via safe DOM APIs rather than `innerHTML`, and the session storage layer rejects manifests with unexpected shapes.
+- **Locked down GitHub Actions permissions** for the Marketplace publish workflow to the minimum required (`contents: read`), reducing the blast radius of a workflow compromise.
 
 ### Internal
 
 - ESLint is now configured for the TypeScript sources (`npm run lint`).
 - Unit tests run via the built-in `node:test` runner (`npm test`); new tests cover the WAV header parser, PCM peak bucketer, sine-wave amplitude handling, and stereo downmix used by the waveform.
+- Design specs and implementation plans for the waveform timeline and marker fix are checked in under `docs/superpowers/` for reference.
 
 ## [0.1.0] — 2026-04-28
 
