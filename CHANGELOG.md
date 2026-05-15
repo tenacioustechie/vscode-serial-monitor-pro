@@ -2,6 +2,31 @@
 
 All notable changes to Serial Monitor Pro are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] — 2026-05-15
+
+Hotfix release for the **"There is no data provider registered that can provide view data."** error that marketplace users saw in the Serial Ports view immediately after installing v0.3.0. The published `.vsix` was missing its `serialport` runtime, so the extension could not finish loading; this release ships the runtime correctly and adds three layers of regression tests so the bug class cannot return.
+
+### Fixed
+
+- **"No data provider registered" error in the Serial Ports view** for marketplace installs. The published `.vsix` was being packaged without `serialport` (and its native-binding helpers `@serialport/*`, `node-addon-api`, `node-gyp-build`, `debug`, `ms`), so `require('serialport')` threw `MODULE_NOT_FOUND` at module load, `activate()` never ran, and the contributed tree views had no data provider attached. `.vscodeignore` now preserves the full runtime tree in the packaged extension.
+
+### Changed
+
+- **`serialport` is now imported lazily** inside the functions that need it instead of at the top of `extension.ts`. A missing or broken native binding can no longer prevent `activate()` from running — the existing error handling in `SerialPortManager.refresh()` now surfaces a real user-visible error instead.
+- **`activate()` registers both tree views with placeholder providers as its first action**, then swaps in the real `TreeDataProvider`s inside a `try/catch`. If anything during initialization throws, the UI shows an actual error message via `showErrorMessage` rather than VS Code's cryptic default.
+- **Trimmed unused esbuild externals.** `@serialport/bindings-cpp` and `node-record-lpcm16` were marked `external` in the bundler config but never imported anywhere in `src/` (audio recording shells out to the `rec` CLI directly). The dead config is gone.
+
+### Internal
+
+- New static manifest test (`tests/manifest.test.mjs`) asserts that every `esbuild` external (except `vscode`) is a declared runtime dependency, that `.vscodeignore` preserves every external under `node_modules/`, and that every contributed view ID is registered with `createTreeView()` in `extension.ts`.
+- New packaging integration test (`tests/packaging.integration.mjs`, exposed as `npm run package:verify`) runs `vsce package`, unzips the resulting `.vsix`, and asserts that `dist/extension.js` plus every external resolves from the packaged `node_modules`. This test would have caught the v0.3.0 regression before publish.
+- New activation test (`tests/activation.test.mjs`) calls `activate()` against a stubbed `vscode` API and asserts that both contributed view IDs are registered with non-null `TreeDataProvider`s before `activate()` returns.
+- `npm run package:verify` runs in CI before the marketplace publish step, so a regression that strips `serialport` from the `.vsix` blocks the release.
+
+### Known Issues
+
+- The published `.vsix` ships only the host CI's platform-specific native bindings for `@serialport/bindings-cpp`. CI currently builds on Ubuntu, so macOS and Windows users may still see a `MODULE_NOT_FOUND` for the binding when the extension tries to list ports. The fix is to publish platform-specific `.vsix` files via `vsce package --target` per platform; tracked as a follow-up.
+
 ## [0.3.0] — 2026-05-15
 
 This release focuses on the playback experience: the timeline now shows an audio waveform of your recorded commentary, markers are usable again with a much nicer UX, and the Recorded Sessions list refreshes itself when a recording stops. Two client-side XSS issues in the playback webview (flagged by CodeQL) are also fixed.

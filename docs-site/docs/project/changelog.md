@@ -6,6 +6,30 @@ sidebar_position: 1
 
 All notable changes to Serial Monitor Pro are documented here.
 
+## [0.4.0] — 2026-05-15
+
+Hotfix release for the **"There is no data provider registered that can provide view data."** error that marketplace users saw in the Serial Ports view immediately after installing v0.3.0. The published `.vsix` was missing its `serialport` runtime, so the extension could not finish loading; this release ships the runtime correctly and adds regression tests so the bug class cannot return.
+
+### Fixed
+
+- **"No data provider registered" error in the Serial Ports view** for marketplace installs. The published `.vsix` was being packaged without `serialport` and its native-binding helpers, so loading the extension threw `MODULE_NOT_FOUND` before `activate()` could run — leaving the contributed tree views with no data provider attached. The runtime tree is now preserved in the packaged extension.
+
+### Changed
+
+- **`serialport` is now loaded lazily.** A missing or broken native binding can no longer prevent the extension from activating — the error surfaces in the existing port-refresh flow instead, with a real user-visible message.
+- **The Serial Ports and Recorded Sessions views register placeholder providers immediately on activation**, then swap in the real ones once initialization succeeds. If anything during init throws, the UI now shows a real error message instead of VS Code's cryptic default.
+
+### Internal
+
+- Added a static manifest test that locks the invariants between `package.json`, `esbuild` externals, and `.vscodeignore`.
+- Added a packaging integration test (`npm run package:verify`) that runs `vsce package`, unzips the result, and asserts every runtime external resolves from the packaged extension. This would have caught the v0.3.0 regression before publish.
+- Added an activation test that asserts both contributed view IDs are registered with non-null `TreeDataProvider`s before `activate()` returns.
+- `npm run package:verify` runs in CI before the marketplace publish step.
+
+### Known Issues
+
+- The published `.vsix` ships only the host CI's platform-specific native bindings for `@serialport/bindings-cpp`. CI currently builds on Ubuntu, so macOS and Windows users may still see a `MODULE_NOT_FOUND` for the binding when the extension tries to list ports. The fix is to publish platform-specific `.vsix` files via `vsce package --target` per platform; tracked as a follow-up.
+
 ## [0.3.0] — 2026-05-15
 
 This release focuses on the playback experience: the timeline now shows an audio waveform of your recorded commentary, markers are usable again with a much nicer UX, and the Recorded Sessions list refreshes itself when a recording stops. Two client-side XSS issues in the playback webview (flagged by CodeQL) are also fixed.
