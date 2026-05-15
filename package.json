@@ -164,7 +164,8 @@
     "build": "node esbuild.js --production",
     "watch": "node esbuild.js --watch",
     "lint": "eslint src --ext ts",
-    "test": "node --test tests/*.test.mjs"
+    "test": "node --test tests/*.test.mjs",
+    "package:verify": "npm run build && node --test tests/packaging.integration.mjs"
   },
   "dependencies": {
     "serialport": "^12.0.0",
