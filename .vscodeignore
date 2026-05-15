@@ -1,12 +1,12 @@
 .vscode/**
 src/**
-node_modules/**
 *.ts
 tsconfig.json
 esbuild.js
 .eslintrc*
 .gitignore
 test/**
+tests/**
 CLAUDE.md
 DEPLOYMENT.md
 DEVELOPMENT.md
@@ -17,3 +17,13 @@ DEVELOPMENT.md
 docs-site/
 test-arduino/
 docs/
+
+# Exclude all of node_modules by default, but keep the runtime externals
+# declared in esbuild.js and their transitive dependencies.
+node_modules/**
+!node_modules/serialport/**
+!node_modules/@serialport/**
+!node_modules/node-addon-api/**
+!node_modules/node-gyp-build/**
+!node_modules/debug/**
+!node_modules/ms/**
