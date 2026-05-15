@@ -4,7 +4,6 @@ import { MonitorPanel } from './monitor/monitorPanel';
 import { SessionRecorder } from './recording/sessionRecorder';
 import { SessionStorage, SessionTreeProvider, SessionTreeItem } from './storage/sessionStorage';
 import { PlaybackPanel } from './playback/playbackPanel';
-import { SerialPort } from 'serialport';
 
 export async function activate(context: vscode.ExtensionContext) {
   console.log('Serial Monitor Pro is now active');
@@ -131,6 +130,7 @@ async function showPortQuickPick(
 ) {
   await portManager.refresh();
 
+  const { SerialPort } = await import('serialport');
   const ports = await SerialPort.list();
 
   if (ports.length === 0) {
