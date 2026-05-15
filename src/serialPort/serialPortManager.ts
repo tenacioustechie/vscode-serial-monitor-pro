@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import { SerialPort } from 'serialport';
 import { PortInfo } from './types';
 
 export class SerialPortManager implements vscode.TreeDataProvider<PortTreeItem>, vscode.Disposable {
@@ -10,6 +9,7 @@ export class SerialPortManager implements vscode.TreeDataProvider<PortTreeItem>,
 
   async refresh(): Promise<void> {
     try {
+      const { SerialPort } = await import('serialport');
       const portList = await SerialPort.list();
       this.ports = portList.map((p) => ({
         path: p.path,

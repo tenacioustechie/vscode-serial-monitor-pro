@@ -16,8 +16,6 @@ async function main() {
     external: [
       'vscode',
       'serialport',
-      '@serialport/bindings-cpp',
-      'node-record-lpcm16',
     ],
     logLevel: 'info',
     plugins: [],
