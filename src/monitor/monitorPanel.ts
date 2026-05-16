@@ -17,7 +17,8 @@ type IncomingMessage =
   | { type: 'send'; data: string }
   | { type: 'startRecording' }
   | { type: 'stopRecording'; name?: string }
-  | { type: 'updateConfig'; config: Omit<PortConfig, 'path'> };
+  | { type: 'updateConfig'; config: Omit<PortConfig, 'path'> }
+  | { type: 'updateAutoRecord'; enabled: boolean };
 
 export class MonitorPanel implements vscode.Disposable {
   public static currentPanels: Map<string, MonitorPanel> = new Map();
@@ -236,6 +237,13 @@ export class MonitorPanel implements vscode.Disposable {
           };
           await this.portService.open(config);
         }
+        break;
+      }
+
+      case 'updateAutoRecord': {
+        await vscode.workspace
+          .getConfiguration('serialMonitorPro')
+          .update('autoRecordOnConnect', message.enabled, vscode.ConfigurationTarget.Global);
         break;
       }
     }
