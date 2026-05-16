@@ -75,6 +75,26 @@ export class MonitorPanel implements vscode.Disposable {
     this.disposables.push(
       this.portService.onClose(() => {
         void this.panel.webview.postMessage({ type: 'disconnected' });
+
+        if (this.sessionRecorder.isRecording) {
+          void this.sessionRecorder.stopRecording().then((session) => {
+            if (session) {
+              void this.panel.webview.postMessage({
+                type: 'recordingSaved',
+                sessionId: session.id,
+                sessionName: session.name,
+              });
+              void vscode.window.showInformationMessage(
+                `Recording saved: ${session.name} (${session.events.length} events)`
+              );
+            }
+          }).catch((err) => {
+            void this.panel.webview.postMessage({
+              type: 'error',
+              message: `Failed to auto-stop recording: ${errMessage(err)}`,
+            });
+          });
+        }
       })
     );
 
