@@ -2,6 +2,19 @@
 
 All notable changes to Serial Monitor Pro are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] — 2026-05-17
+
+Small playback UX fix: pressing **Play** at the end of a session now restarts from the beginning instead of doing nothing, so you no longer have to click ⏮ first.
+
+### Fixed
+
+- **Pressing Play at the end of a session now restarts playback from 00:00** instead of being a no-op. Previously, when playback reached `session.duration` the loop clamped `currentTimeMs` to the end and paused; clicking ▶ again called `startPlayback()`, but the very next frame the loop saw `currentTimeMs >= session.duration` and immediately paused again. The play handler now detects the end-of-session state and seeks to 0 before resuming.
+
+### Internal
+
+- Extracted the end-of-session check into a new pure helper module (`media/playback-core.js`), exported UMD-style so the webview script and Node `node:test` runner can share it — matching the existing `media/waveform-core.js` pattern.
+- New unit tests in `tests/playback-core.test.mjs` cover `isAtEnd` for at/past/before the end, zero duration, missing duration, and start-of-playback.
+
 ## [0.4.0] — 2026-05-15
 
 Hotfix release for the **"There is no data provider registered that can provide view data."** error that marketplace users saw in the Serial Ports view immediately after installing v0.3.0. The published `.vsix` was missing its `serialport` runtime, so the extension could not finish loading; this release ships the runtime correctly and adds three layers of regression tests so the bug class cannot return.
