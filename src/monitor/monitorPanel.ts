@@ -270,6 +270,13 @@ export class MonitorPanel implements vscode.Disposable {
     <div class="monitor-container">
         <div class="toolbar">
             <div class="toolbar-group">
+                <button id="connectBtn" class="btn btn-primary">Connect</button>
+                <button id="disconnectBtn" class="btn btn-danger" disabled>Disconnect</button>
+                <span id="statusIndicator" class="status-indicator disconnected">●</span>
+                <span id="statusText">Disconnected</span>
+            </div>
+
+            <div class="toolbar-group">
                 <label for="baudRate">Baud Rate:</label>
                 <select id="baudRate">${baudRateOptions}</select>
 
@@ -303,13 +310,6 @@ export class MonitorPanel implements vscode.Disposable {
                     <option value="mark">Mark</option>
                     <option value="space">Space</option>
                 </select>
-            </div>
-
-            <div class="toolbar-group">
-                <button id="connectBtn" class="btn btn-primary">Connect</button>
-                <button id="disconnectBtn" class="btn btn-danger" disabled>Disconnect</button>
-                <span id="statusIndicator" class="status-indicator disconnected">●</span>
-                <span id="statusText">Disconnected</span>
             </div>
         </div>
 
