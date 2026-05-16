@@ -52,3 +52,12 @@ test('every contributed view is registered via createTreeView in extension.ts', 
     );
   }
 });
+
+test('serialMonitorPro.autoRecordOnConnect is a boolean setting defaulting to true', () => {
+  const props = pkg.contributes?.configuration?.properties ?? {};
+  const setting = props['serialMonitorPro.autoRecordOnConnect'];
+  assert.ok(setting, 'package.json must contribute serialMonitorPro.autoRecordOnConnect');
+  assert.equal(setting.type, 'boolean', 'autoRecordOnConnect must be a boolean');
+  assert.equal(setting.default, true, 'autoRecordOnConnect must default to true');
+  assert.ok(setting.description, 'autoRecordOnConnect must have a description');
+});
