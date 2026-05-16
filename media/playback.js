@@ -232,6 +232,9 @@
 
   // Transport controls
   playBtn.addEventListener('click', () => {
+    if (session && window.PlaybackCore && window.PlaybackCore.isAtEnd(currentTimeMs, session.duration)) {
+      seekTo(0);
+    }
     startPlayback();
   });
 

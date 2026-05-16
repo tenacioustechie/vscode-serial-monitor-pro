@@ -155,6 +155,7 @@ export class PlaybackPanel implements vscode.Disposable {
     const jsUri = webview.asWebviewUri(vscode.Uri.joinPath(this.extensionUri, 'media', 'playback.js'));
     const waveformCoreUri = webview.asWebviewUri(vscode.Uri.joinPath(this.extensionUri, 'media', 'waveform-core.js'));
     const waveformUri = webview.asWebviewUri(vscode.Uri.joinPath(this.extensionUri, 'media', 'waveform.js'));
+    const playbackCoreUri = webview.asWebviewUri(vscode.Uri.joinPath(this.extensionUri, 'media', 'playback-core.js'));
 
     const nonce = getNonce();
 
@@ -247,6 +248,7 @@ export class PlaybackPanel implements vscode.Disposable {
 
     <script nonce="${nonce}" src="${waveformCoreUri.toString()}"></script>
     <script nonce="${nonce}" src="${waveformUri.toString()}"></script>
+    <script nonce="${nonce}" src="${playbackCoreUri.toString()}"></script>
     <script nonce="${nonce}" src="${jsUri.toString()}"></script>
 </body>
 </html>`;
