@@ -155,6 +155,12 @@
           "type": "string",
           "default": "",
           "description": "Custom path for storing recording sessions. Leave empty to use workspace .serial-sessions/ directory."
+        },
+        "serialMonitorPro.autoRecordOnConnect": {
+          "type": "boolean",
+          "default": true,
+          "scope": "window",
+          "description": "Automatically start recording when a serial port is connected and stop when it is disconnected."
         }
       }
     }
