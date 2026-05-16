@@ -19,6 +19,7 @@
   const recordBtn = document.getElementById('recordBtn');
   const stopRecordBtn = document.getElementById('stopRecordBtn');
   const recordingTimer = document.getElementById('recordingTimer');
+  const autoRecordToggle = document.getElementById('autoRecordToggle');
   const output = document.getElementById('output');
   const inputField = document.getElementById('inputField');
   const sendBtn = document.getElementById('sendBtn');
@@ -66,6 +67,14 @@
   // Clear output
   clearBtn.addEventListener('click', () => {
     output.innerHTML = '';
+  });
+
+  // Auto-record on connect toggle
+  autoRecordToggle.addEventListener('change', () => {
+    vscode.postMessage({
+      type: 'updateAutoRecord',
+      enabled: autoRecordToggle.checked,
+    });
   });
 
   // Record button
