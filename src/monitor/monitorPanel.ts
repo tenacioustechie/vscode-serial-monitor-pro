@@ -250,6 +250,8 @@ export class MonitorPanel implements vscode.Disposable {
     const customBaudRates = config.get<number[]>('customBaudRates') ?? [];
     const allBaudRates = [...STANDARD_BAUD_RATES, ...customBaudRates].sort((a, b) => a - b);
     const defaultBaudRate = config.get<number>('defaultBaudRate') ?? 115200;
+    const autoRecordOnConnect = config.get<boolean>('autoRecordOnConnect') ?? true;
+    const autoRecordChecked = autoRecordOnConnect ? 'checked' : '';
 
     const baudRateOptions = allBaudRates.map(r =>
       `<option value="${r}" ${r === defaultBaudRate ? 'selected' : ''}>${r}</option>`
@@ -324,6 +326,9 @@ export class MonitorPanel implements vscode.Disposable {
                 <button id="clearBtn" class="btn btn-small">Clear</button>
             </div>
             <div class="toolbar-group recording-controls">
+                <label class="auto-record-label">
+                    <input type="checkbox" id="autoRecordToggle" ${autoRecordChecked}> Auto-record on connect
+                </label>
                 <button id="recordBtn" class="btn btn-record" disabled title="Start Recording">
                     <span class="record-dot">●</span> Record
                 </button>
