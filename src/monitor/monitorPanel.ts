@@ -81,6 +81,18 @@ export class MonitorPanel implements vscode.Disposable {
     this.disposables.push(
       this.portService.onOpen(() => {
         void this.panel.webview.postMessage({ type: 'connected' });
+
+        const autoRecord = vscode.workspace
+          .getConfiguration('serialMonitorPro')
+          .get<boolean>('autoRecordOnConnect') ?? true;
+        if (autoRecord && !this.sessionRecorder.isRecording) {
+          void this.sessionRecorder.startRecording(this.portService).catch((err) => {
+            void this.panel.webview.postMessage({
+              type: 'error',
+              message: `Failed to auto-start recording: ${errMessage(err)}`,
+            });
+          });
+        }
       })
     );
 
