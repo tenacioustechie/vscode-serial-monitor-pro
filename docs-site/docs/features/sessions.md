@@ -45,6 +45,10 @@ Each session is a self-contained directory:
 
 By default sessions are stored in `.serial-sessions/` in your workspace root. Set a custom absolute path with the `serialMonitorPro.sessionStoragePath` setting to use a shared location across projects.
 
+## Deleting a Session
+
+Right-click any session in the **Recorded Sessions** sidebar and choose **Delete Session**. The session is removed from the sidebar immediately and a notification appears with an **Undo** button — click **Undo** to restore it. If you don't undo, the session is permanently deleted the next time you delete another session or close VS Code.
+
 ## Sharing Sessions
 
 Zip or copy a `session-{UUID}/` directory and send it to a colleague. They can place it in their own `.serial-sessions/` folder and open it from the **Recorded Sessions** panel.
