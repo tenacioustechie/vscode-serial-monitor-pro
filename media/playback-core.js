@@ -7,7 +7,13 @@
     return currentTimeMs >= duration;
   }
 
-  const PlaybackCore = { isAtEnd: isAtEnd };
+  function initialCursorMs(session) {
+    if (!session) { return 0; }
+    const d = session.duration;
+    return typeof d === 'number' && isFinite(d) && d > 0 ? d : 0;
+  }
+
+  const PlaybackCore = { isAtEnd: isAtEnd, initialCursorMs: initialCursorMs };
 
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = PlaybackCore;
