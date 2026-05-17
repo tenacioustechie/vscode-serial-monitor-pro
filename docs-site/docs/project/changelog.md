@@ -8,7 +8,15 @@ All notable changes to Serial Monitor Pro are documented here.
 
 ## [0.5.0] — 2026-05-17
 
-Small playback UX fix: pressing **Play** at the end of a session now restarts from the beginning instead of doing nothing, so you no longer have to click ⏮ first.
+Recording is now on by default: connecting to a port automatically starts a session and disconnecting saves it, so you never lose a debug session because you forgot to hit Record. The monitor toolbar is also reorganized to put Connect/Disconnect on the left where the eye lands first. Plus a small playback UX fix.
+
+### Added
+
+- **Auto-record on connect.** A new **Auto-record on connect** checkbox in the monitor toolbar (ticked by default) makes connecting to a port automatically start a recording, and disconnecting automatically stop and save it. Configured via `serialMonitorPro.autoRecordOnConnect`, so the preference travels with VS Code Settings Sync — untick the box if you prefer to start recordings manually.
+
+### Changed
+
+- **Monitor toolbar reorganized.** Connect/Disconnect (with the connection-status indicator) now live on the left of the primary toolbar, with the connection-settings selects (baud rate, line ending, data bits, stop bits, parity) on the right. The primary action is now where the eye lands first.
 
 ### Fixed
 
@@ -18,6 +26,7 @@ Small playback UX fix: pressing **Play** at the end of a session now restarts fr
 
 - Extracted the end-of-session check into a new pure helper module (`media/playback-core.js`), exported UMD-style so the webview script and Node `node:test` runner can share it — matching the existing `media/waveform-core.js` pattern.
 - New unit tests in `tests/playback-core.test.mjs` cover `isAtEnd` for at/past/before the end, zero duration, missing duration, and start-of-playback.
+- Auto-record start/stop is implemented in the extension host on the existing port-open/close events, so a port going away unexpectedly (e.g. cable unplugged mid-recording) still saves the session.
 
 ## [0.4.0] — 2026-05-15
 

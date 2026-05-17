@@ -48,9 +48,11 @@ All recorded sessions are listed in a dedicated sidebar panel. Sessions are stor
 
 ### Recording a Session
 
-1. While connected to a port, click the **Record** button in the monitor toolbar.
+By default, **recording starts automatically when you connect** to a port and stops when you disconnect. To start one manually instead, untick **Auto-record on connect** in the monitor toolbar and use the **Record** / **Stop** buttons.
+
+1. While connected to a port, click the **Record** button in the monitor toolbar (or just connect, if auto-record is on).
 2. Speak into your microphone to add voice commentary alongside the data.
-3. Click **Stop** when done and give the session a name.
+3. Click **Stop** (or disconnect) when done.
 
 ### Playing Back a Session
 
@@ -69,6 +71,7 @@ All recorded sessions are listed in a dedicated sidebar panel. Sessions are stor
 | `serialMonitorPro.defaultLineEnding` | `\n` | Line ending appended to outgoing messages |
 | `serialMonitorPro.timestampEnabled` | `false` | Show timestamps on received data |
 | `serialMonitorPro.sessionStoragePath` | `""` | Custom path for session storage (defaults to `.serial-sessions/` in the workspace) |
+| `serialMonitorPro.autoRecordOnConnect` | `true` | Auto-start recording when a port connects and auto-stop on disconnect |
 
 ---
 

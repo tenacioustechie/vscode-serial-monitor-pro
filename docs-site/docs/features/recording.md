@@ -18,6 +18,10 @@ Serial Monitor Pro can record an entire session — every byte sent and received
 2. Enter a name for the session when prompted.
 3. The session is saved automatically.
 
+## Auto-Record on Connect
+
+By default, connecting to a port automatically starts a recording, and disconnecting automatically stops and saves it — so you don't have to remember to hit Record before a debug session. Toggle this from the **Auto-record on connect** checkbox in the monitor toolbar, or via the [`serialMonitorPro.autoRecordOnConnect`](../reference/configuration#serialmonitorproautorecordonconnect) setting. The preference is stored at the user level and syncs across machines with VS Code Settings Sync.
+
 ## Audio Recording
 
 Audio is captured using [SoX](https://sourceforge.net/projects/sox/) (`rec` command) at 16-bit PCM, 44.1 kHz, saved as `audio.wav`. If SoX is not installed, a warning is displayed and recording continues without audio — the serial data is still captured.
