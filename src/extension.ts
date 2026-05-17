@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { SerialPortManager, PortTreeItem } from './serialPort/serialPortManager';
 import { MonitorPanel } from './monitor/monitorPanel';
 import { SessionRecorder } from './recording/sessionRecorder';
+import { SessionDiscardService } from './recording/sessionDiscardService';
 import { SessionStorage, SessionTreeProvider, SessionTreeItem } from './storage/sessionStorage';
 import { PlaybackPanel } from './playback/playbackPanel';
 
@@ -44,6 +45,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
     void portManager.refresh();
 
+    const discardService = new SessionDiscardService(sessionStorage, sessionTreeProvider);
+    void discardService.gcOrphans();
+
     context.subscriptions.push(
       sessionRecorder.onSessionSaved(() => {
         sessionTreeProvider.refresh();
@@ -53,9 +57,9 @@ export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
       vscode.commands.registerCommand('serialMonitorPro.openMonitor', (item?: PortTreeItem) => {
         if (item && item instanceof PortTreeItem && !item.isDetail) {
-          MonitorPanel.createOrShow(context.extensionUri, item, sessionRecorder);
+          MonitorPanel.createOrShow(context.extensionUri, item, sessionRecorder, discardService);
         } else {
-          void showPortQuickPick(portManager, context.extensionUri, sessionRecorder);
+          void showPortQuickPick(portManager, context.extensionUri, sessionRecorder, discardService);
         }
       }),
 
@@ -118,6 +122,16 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.commands.registerCommand('serialMonitorPro.refreshSessions', () => {
         sessionTreeProvider.refresh();
       }),
+
+      vscode.commands.registerCommand(
+        'serialMonitorPro.deleteSession',
+        async (item?: SessionTreeItem) => {
+          if (!(item instanceof SessionTreeItem)) {
+            return;
+          }
+          await discardService.softDelete(item.sessionId, item.sessionName);
+        },
+      ),
     );
 
     context.subscriptions.push(
@@ -127,6 +141,7 @@ export async function activate(context: vscode.ExtensionContext) {
       sessionTreeProvider,
       sessionStorage,
       sessionRecorder,
+      discardService,
     );
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -141,6 +156,7 @@ async function showPortQuickPick(
   portManager: SerialPortManager,
   extensionUri: vscode.Uri,
   sessionRecorder: SessionRecorder,
+  discardService: SessionDiscardService,
 ) {
   await portManager.refresh();
 
@@ -170,7 +186,7 @@ async function showPortQuickPick(
       vscode.TreeItemCollapsibleState.None,
       false,
     );
-    MonitorPanel.createOrShow(extensionUri, mockItem, sessionRecorder);
+    MonitorPanel.createOrShow(extensionUri, mockItem, sessionRecorder, discardService);
   }
 }
 
