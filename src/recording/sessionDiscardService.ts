@@ -21,7 +21,7 @@ export class SessionDiscardService implements vscode.Disposable {
     this.storageRoot = path.dirname(this.storage.getSessionDir(''));
   }
 
-  async softDelete(sessionId: string, sessionName: string): Promise<void> {
+  softDelete(sessionId: string, sessionName: string): void {
     if (this.pending) {
       try {
         discardCore.finalize(this.storageRoot, this.pending.id);
@@ -73,7 +73,7 @@ export class SessionDiscardService implements vscode.Disposable {
     this.pending = undefined;
   }
 
-  async finalizePending(): Promise<void> {
+  finalizePending(): void {
     if (!this.pending) return;
     const id = this.pending.id;
     this.pending = undefined;
@@ -88,7 +88,7 @@ export class SessionDiscardService implements vscode.Disposable {
     return this.pending?.id;
   }
 
-  async gcOrphans(): Promise<void> {
+  gcOrphans(): void {
     let orphans: string[];
     try {
       orphans = discardCore.findOrphans(this.storageRoot);
@@ -106,6 +106,6 @@ export class SessionDiscardService implements vscode.Disposable {
   }
 
   dispose(): void {
-    void this.finalizePending();
+    this.finalizePending();
   }
 }

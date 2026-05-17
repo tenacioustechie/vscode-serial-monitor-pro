@@ -108,17 +108,13 @@ export class MonitorPanel implements vscode.Disposable {
           .getConfiguration('serialMonitorPro')
           .get<boolean>('autoRecordOnConnect') ?? true;
         if (autoRecord && !this.sessionRecorder.isRecording) {
-          void (async () => {
-            try {
-              await this.discardService.finalizePending();
-              await this.sessionRecorder.startRecording(this.portService);
-            } catch (err) {
-              void this.panel.webview.postMessage({
-                type: 'error',
-                message: `Failed to auto-start recording: ${errMessage(err)}`,
-              });
-            }
-          })();
+          this.discardService.finalizePending();
+          void this.sessionRecorder.startRecording(this.portService).catch((err) => {
+            void this.panel.webview.postMessage({
+              type: 'error',
+              message: `Failed to auto-start recording: ${errMessage(err)}`,
+            });
+          });
         }
       })
     );
@@ -235,7 +231,7 @@ export class MonitorPanel implements vscode.Disposable {
           return;
         }
         try {
-          await this.discardService.finalizePending();
+          this.discardService.finalizePending();
           await this.sessionRecorder.startRecording(this.portService);
         } catch (err) {
           void this.panel.webview.postMessage({
@@ -287,7 +283,7 @@ export class MonitorPanel implements vscode.Disposable {
       }
 
       case 'discardLastRecording': {
-        await this.discardService.softDelete(message.sessionId, message.sessionName);
+        this.discardService.softDelete(message.sessionId, message.sessionName);
         break;
       }
 
