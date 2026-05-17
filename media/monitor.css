@@ -275,3 +275,37 @@ body {
 .output-area::-webkit-scrollbar-thumb:hover {
     background: var(--vscode-scrollbarSlider-hoverBackground);
 }
+
+/* Inline action buttons on the "Recording saved" log line. */
+.saved-action-btn {
+    background: transparent;
+    color: var(--vscode-textLink-foreground, #6cb6ff);
+    border: 1px solid var(--vscode-panel-border, #444);
+    border-radius: 3px;
+    padding: 0 6px;
+    font: inherit;
+    font-size: 0.9em;
+    cursor: pointer;
+    margin: 0 1px;
+}
+
+.saved-action-btn:hover {
+    background: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.08));
+}
+
+.saved-action-btn.saved-action-discard {
+    color: var(--vscode-errorForeground, #f97583);
+    border-color: var(--vscode-errorForeground, #f97583);
+}
+
+.saved-line-name {
+    font-style: normal;
+    color: var(--vscode-foreground);
+    margin-right: 6px;
+}
+
+.saved-line-discarded {
+    color: var(--vscode-descriptionForeground);
+    text-decoration: line-through;
+    margin: 0 4px;
+}

@@ -118,7 +118,7 @@
         break;
 
       case 'recordingSaved':
-        appendSystemLine(`Recording saved: ${message.sessionName}`);
+        appendRecordingSavedLine(message.sessionId, message.sessionName);
         break;
     }
   });
@@ -206,6 +206,59 @@
 
     output.appendChild(line);
 
+    if (autoscrollToggle.checked) {
+      output.scrollTop = output.scrollHeight;
+    }
+  }
+
+  function appendRecordingSavedLine(sessionId, sessionName) {
+    const line = document.createElement('span');
+    line.className = 'output-line system saved-line';
+
+    const prefix = document.createElement('span');
+    prefix.textContent = '--- Recording saved: ';
+    line.appendChild(prefix);
+
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'saved-line-name';
+    nameSpan.textContent = sessionName;
+    line.appendChild(nameSpan);
+
+    const openBtn = document.createElement('button');
+    openBtn.className = 'saved-action-btn';
+    openBtn.type = 'button';
+    openBtn.textContent = 'Open';
+    openBtn.addEventListener('click', () => {
+      vscode.postMessage({ type: 'openSession', sessionId });
+    });
+
+    const discardBtn = document.createElement('button');
+    discardBtn.className = 'saved-action-btn saved-action-discard';
+    discardBtn.type = 'button';
+    discardBtn.textContent = 'Discard';
+    discardBtn.addEventListener('click', () => {
+      vscode.postMessage({ type: 'discardLastRecording', sessionId, sessionName });
+      openBtn.remove();
+      discardBtn.remove();
+      const marker = document.createElement('span');
+      marker.className = 'saved-line-discarded';
+      marker.textContent = '(discarded)';
+      line.appendChild(marker);
+      const trailing2 = document.createElement('span');
+      trailing2.textContent = ' ---';
+      line.appendChild(trailing2);
+    });
+
+    line.appendChild(document.createTextNode(' '));
+    line.appendChild(openBtn);
+    line.appendChild(document.createTextNode(' '));
+    line.appendChild(discardBtn);
+
+    const trailing = document.createElement('span');
+    trailing.textContent = ' ---';
+    line.appendChild(trailing);
+
+    output.appendChild(line);
     if (autoscrollToggle.checked) {
       output.scrollTop = output.scrollHeight;
     }
