@@ -2,6 +2,23 @@
 
 All notable changes to Serial Monitor Pro are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] — 2026-05-17
+
+One-click "throw it out" for a recording you didn't want — without modal dialogs and without losing the recording if you change your mind. When a recording is saved, both the VS Code toast and the in-monitor log line now offer **Open** and **Discard** actions. Discard removes the session from the sidebar immediately and shows an **Undo** toast; if you don't undo, the recording is permanently deleted the next time you start another recording, close VS Code, or perform another discard. The **Recorded Sessions** sidebar gets the same flow via a new right-click **Delete Session** action.
+
+### Added
+
+- **Discard button on saved-recording toast and log line.** After a recording is saved (either manually via the Stop button or automatically on disconnect), the existing "Recording saved" notification now includes **Open** and **Discard** buttons, and the corresponding `--- Recording saved: <name> ---` line in the monitor output has matching inline buttons. The inline buttons are CSP-safe (rendered as real `<button>` elements, not via `innerHTML`).
+- **Soft-delete with undo.** Clicking **Discard** moves the session directory to a tombstone path (`.discarded-session-<id>`) so it disappears from the **Recorded Sessions** sidebar instantly, then shows a `Recording discarded: <name>` toast with an **Undo** button. Clicking **Undo** restores the session. The tombstone is permanently deleted (`rm -rf`) when the user starts another recording, performs another discard, or closes VS Code.
+- **`Delete Session` context menu** on items in the **Recorded Sessions** sidebar, using the same soft-delete + undo flow. Right-click a session → **Delete Session**.
+
+### Internal
+
+- New `src/recording/sessionDiscardCore.js` pure-JS file-system module owns the rename / restore / finalize / find-orphans primitives so they can be unit-tested without `vscode`. Tested by `tests/sessionDiscardCore.test.mjs`.
+- New `src/recording/sessionDiscardService.ts` TypeScript wrapper layers VS Code concerns (toast lifecycle, sessions-tree refresh, single-slot pending state) on the core.
+- `extension.ts` calls `SessionDiscardService.gcOrphans()` at activation so any `.discarded-session-*` directory left behind by a crash is cleaned up.
+- `tests/manifest.test.mjs` now asserts that the `serialMonitorPro.deleteSession` command and its `view/item/context` menu entry are both contributed.
+
 ## [0.5.0] — 2026-05-17
 
 Recording is now on by default: connecting to a port automatically starts a session and disconnecting saves it, so you never lose a debug session because you forgot to hit Record. The monitor toolbar is also reorganized to put Connect/Disconnect on the left where the eye lands first. Plus a small playback UX fix.
