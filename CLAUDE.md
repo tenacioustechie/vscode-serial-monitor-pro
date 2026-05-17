@@ -14,6 +14,14 @@ npm run vscode:prepublish  # Pre-publish production build
 
 **Debug in VS Code:** Press F5 to launch the Extension Development Host (auto-runs `npm: watch`).
 
+## Development Standards
+
+When adding features or doing bug fixes you MUST:
+- Update [CHANGELOG.md](.\CHANGELOG.md) and docs site [docs-site\docs\project\changelog.md](.\docs-site\docs\project\changelog.md) files.
+- Add tests to cover new functionality
+- Update docs-site with any updates to functionality the user should be aware of
+- Recomend a Git issue description text and implementation update
+
 ## Architecture
 
 This is a VS Code extension with two distinct runtime contexts:

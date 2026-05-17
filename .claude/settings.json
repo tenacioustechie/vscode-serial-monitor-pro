@@ -9,7 +9,15 @@
       "Bash(git log *)",
       "Bash(git ls-remote *)",
       "Skill(superpowers:test-driven-development)",
-      "Skill(superpowers:test-driven-development:*)"
+      "Skill(superpowers:test-driven-development:*)",
+      "Skill(superpowers:brainstorming)",
+      "Skill(superpowers:brainstorming:*)",
+      "Skill(superpowers:writing-plans)",
+      "Skill(superpowers:writing-plans:*)",
+      "Skill(superpowers:executing-plans)",
+      "Skill(superpowers:executing-plans:*)",
+      "Skill(superpowers:finishing-a-development-branch)",
+      "Skill(superpowers:finishing-a-development-branch:*)"
     ]
   }
 }
