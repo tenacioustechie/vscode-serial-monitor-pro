@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { SessionStorage, SessionTreeProvider } from '../storage/sessionStorage';
+import { PlaybackPanel } from '../playback/playbackPanel';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const discardCore = require('./sessionDiscardCore.js') as {
   softDelete(storageRoot: string, sessionId: string): string;
@@ -30,6 +31,8 @@ export class SessionDiscardService implements vscode.Disposable {
       }
       this.pending = undefined;
     }
+
+    PlaybackPanel.closeForSession(sessionId);
 
     try {
       discardCore.softDelete(this.storageRoot, sessionId);

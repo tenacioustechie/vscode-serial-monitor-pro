@@ -15,6 +15,7 @@ One-click "throw it out" for a recording you didn't want — without modal dialo
 - **Discard button on saved-recording toast and log line.** After a recording is saved (either manually via the Stop button or automatically on disconnect), the existing "Recording saved" notification now includes **Open** and **Discard** buttons, and the corresponding `--- Recording saved: <name> ---` line in the monitor output has matching inline buttons. The inline buttons are CSP-safe (rendered as real `<button>` elements, not via `innerHTML`).
 - **Soft-delete with undo.** Clicking **Discard** moves the session directory to a tombstone path (`.discarded-session-<id>`) so it disappears from the **Recorded Sessions** sidebar instantly, then shows a `Recording discarded: <name>` toast with an **Undo** button. Clicking **Undo** restores the session. The tombstone is permanently deleted (`rm -rf`) when the user starts another recording, performs another discard, or closes VS Code.
 - **`Delete Session` context menu** on items in the **Recorded Sessions** sidebar, using the same soft-delete + undo flow. Right-click a session → **Delete Session**.
+- **Playback panel auto-closes on discard.** If a recording's Playback panel is open when the session is discarded (from the monitor flow or the sidebar), the panel is automatically closed so it doesn't keep stale file handles on the soft-deleted session directory.
 
 ### Internal
 
