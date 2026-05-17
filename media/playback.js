@@ -74,6 +74,9 @@
 
     // Render empty output state
     updateOutputDisplay();
+
+    // Land the cursor at the end so the full session log is visible at a glance.
+    seekTo(window.PlaybackCore.initialCursorMs(session));
   }
 
   function attachWaveform(audioUri) {
