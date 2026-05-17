@@ -6,7 +6,7 @@ import path from 'node:path';
 
 const require = createRequire(import.meta.url);
 const here = path.dirname(fileURLToPath(import.meta.url));
-const { isAtEnd } = require(path.join(here, '..', 'media', 'playback-core.js'));
+const { isAtEnd, initialCursorMs } = require(path.join(here, '..', 'media', 'playback-core.js'));
 
 test('isAtEnd: returns true when currentTimeMs equals duration', () => {
   assert.equal(isAtEnd(5000, 5000), true);
@@ -32,4 +32,36 @@ test('isAtEnd: returns false when duration is missing', () => {
 
 test('isAtEnd: returns false at the start of playback', () => {
   assert.equal(isAtEnd(0, 5000), false);
+});
+
+test('initialCursorMs: returns the duration when positive', () => {
+  assert.equal(initialCursorMs({ duration: 5000 }), 5000);
+});
+
+test('initialCursorMs: returns 0 when duration is 0', () => {
+  assert.equal(initialCursorMs({ duration: 0 }), 0);
+});
+
+test('initialCursorMs: returns 0 when duration is missing', () => {
+  assert.equal(initialCursorMs({}), 0);
+});
+
+test('initialCursorMs: returns 0 when duration is null', () => {
+  assert.equal(initialCursorMs({ duration: null }), 0);
+});
+
+test('initialCursorMs: returns 0 when duration is NaN', () => {
+  assert.equal(initialCursorMs({ duration: NaN }), 0);
+});
+
+test('initialCursorMs: returns 0 when duration is negative', () => {
+  assert.equal(initialCursorMs({ duration: -1 }), 0);
+});
+
+test('initialCursorMs: returns 0 when session is null', () => {
+  assert.equal(initialCursorMs(null), 0);
+});
+
+test('initialCursorMs: returns 0 when session is undefined', () => {
+  assert.equal(initialCursorMs(undefined), 0);
 });
