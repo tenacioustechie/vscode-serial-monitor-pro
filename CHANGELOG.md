@@ -4,7 +4,15 @@ All notable changes to Serial Monitor Pro are documented here. The format is bas
 
 ## [0.5.0] — 2026-05-17
 
-Small playback UX fix: pressing **Play** at the end of a session now restarts from the beginning instead of doing nothing, so you no longer have to click ⏮ first.
+Recording is now on by default: connecting to a port automatically starts a session and disconnecting saves it, so you never lose a debug session because you forgot to hit Record. The monitor toolbar is also reorganized to put Connect/Disconnect on the left where the eye lands first. Plus a small playback UX fix.
+
+### Added
+
+- **Auto-record on connect.** When the new **Auto-record on connect** checkbox in the monitor toolbar is ticked (default: on), starting a connection automatically starts a recording, and disconnecting automatically stops and saves it. The preference is stored in user settings as `serialMonitorPro.autoRecordOnConnect`, so it travels with VS Code Settings Sync. Untick the box to keep the previous manual-only behavior — the setting is remembered per-user across machines.
+
+### Changed
+
+- **Monitor toolbar reorganized.** Connect/Disconnect (plus the connection-status indicator) now live on the **left** of the primary toolbar, with baud rate, line ending, data bits, stop bits, and parity on the **right**. The primary action is now where you read first instead of where you read last.
 
 ### Fixed
 
@@ -14,6 +22,8 @@ Small playback UX fix: pressing **Play** at the end of a session now restarts fr
 
 - Extracted the end-of-session check into a new pure helper module (`media/playback-core.js`), exported UMD-style so the webview script and Node `node:test` runner can share it — matching the existing `media/waveform-core.js` pattern.
 - New unit tests in `tests/playback-core.test.mjs` cover `isAtEnd` for at/past/before the end, zero duration, missing duration, and start-of-playback.
+- Auto-record start/stop logic lives in the extension host (in the existing `SerialPortService.onOpen` / `onClose` handlers inside `MonitorPanel`), not in the webview, so the auto-stop also fires when a port goes away unexpectedly (e.g. cable unplugged) — the in-progress recording is saved instead of orphaned.
+- New manifest test (`tests/manifest.test.mjs`) asserts the new `serialMonitorPro.autoRecordOnConnect` setting exists with `type: boolean`, `default: true`, and a non-empty description, so the user-facing default cannot regress silently.
 
 ## [0.4.0] — 2026-05-15
 

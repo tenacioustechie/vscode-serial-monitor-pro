@@ -71,3 +71,16 @@ Absolute path to a directory where recorded sessions are stored. Leave empty to 
 ```json
 "serialMonitorPro.sessionStoragePath": "/Users/you/serial-sessions"
 ```
+
+---
+
+### `serialMonitorPro.autoRecordOnConnect`
+
+| | |
+|---|---|
+| Type | `boolean` |
+| Default | `true` |
+
+When enabled, connecting to a serial port automatically starts a recording, and disconnecting automatically stops and saves it. You can toggle this from the **Auto-record on connect** checkbox in the monitor toolbar — the toolbar checkbox and this setting are the same value. Stored at the user level so VS Code Settings Sync carries the preference between machines.
+
+Untick the box (or set this to `false`) if you prefer to start recordings manually with the **Record** button.
