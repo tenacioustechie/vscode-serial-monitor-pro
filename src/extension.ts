@@ -125,11 +125,11 @@ export async function activate(context: vscode.ExtensionContext) {
 
       vscode.commands.registerCommand(
         'serialMonitorPro.deleteSession',
-        async (item?: SessionTreeItem) => {
+        (item?: SessionTreeItem) => {
           if (!(item instanceof SessionTreeItem)) {
             return;
           }
-          await discardService.softDelete(item.sessionId, item.sessionName);
+          discardService.softDelete(item.sessionId, item.sessionName);
         },
       ),
     );
