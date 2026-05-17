@@ -259,6 +259,13 @@ export class PlaybackPanel implements vscode.Disposable {
     this.disposables.forEach(d => { d.dispose(); });
     this.panel.dispose();
   }
+
+  public static closeForSession(sessionId: string): void {
+    const existing = PlaybackPanel.currentPanels.get(sessionId);
+    if (existing) {
+      existing.dispose();
+    }
+  }
 }
 
 function getNonce(): string {
