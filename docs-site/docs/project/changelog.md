@@ -6,6 +6,18 @@ sidebar_position: 1
 
 All notable changes to Serial Monitor Pro are documented here.
 
+## [0.7.0] — 2026-05-18
+
+When you open a recorded session, the playback panel now lands at the **end** of the timeline so the full serial log is rendered up front. This lets you tell at a glance whether you opened the right session — no need to scrub or press Play just to check. Hitting **Play** still rewinds to `00:00` and plays from the start, courtesy of the existing v0.5.0 end-of-session detection.
+
+### Changed
+
+- **Playback opens at the end of the timeline.** Previously, opening a session left the cursor at `00:00` and the output area empty until you pressed Play or scrubbed. The cursor now lands at `session.duration` on open, so every event up to the end is already visible. Sessions with `duration === 0` or missing duration still open at `00:00` (no regression).
+
+### Internal
+
+- New pure helper `initialCursorMs(session)` lives in `media/playback-core.js` next to the existing `isAtEnd` helper, matching the established UMD + `node:test` pattern. Unit-tested in `tests/playback-core.test.mjs` for positive, zero, missing, null, NaN, and negative durations.
+
 ## [0.6.0] — 2026-05-17
 
 One-click "throw it out" for a recording you didn't want — without modal dialogs and without losing the recording if you change your mind. When a recording is saved, both the VS Code toast and the in-monitor log line now offer **Open** and **Discard** actions. Discard removes the session from the sidebar immediately and shows an **Undo** toast; if you don't undo, the recording is permanently deleted the next time you start another recording, close VS Code, or perform another discard. The **Recorded Sessions** sidebar gets the same flow via a new right-click **Delete Session** action.

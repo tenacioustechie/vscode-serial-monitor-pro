@@ -11,6 +11,8 @@ The playback panel lets you replay any recorded session with variable speed and 
 1. Find the session in the **Recorded Sessions** sidebar panel.
 2. Click it to open the playback panel.
 
+The playback panel opens with the cursor at the **end** of the timeline so the full serial log is already rendered when the panel appears. Pressing **Play** rewinds to `00:00` and plays from the beginning, so you don't need to seek back manually before replaying.
+
 ## Transport Controls
 
 | Control | Action |
