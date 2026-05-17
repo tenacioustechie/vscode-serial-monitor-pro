@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { SerialPortService } from '../serialPort/serialPortService';
 import { PortConfig, STANDARD_BAUD_RATES } from '../serialPort/types';
 import { SessionRecorder } from '../recording/sessionRecorder';
+import { SessionDiscardService } from '../recording/sessionDiscardService';
 import { PortTreeItem } from '../serialPort/serialPortManager';
 
 type IncomingMessage =
@@ -18,7 +19,9 @@ type IncomingMessage =
   | { type: 'startRecording' }
   | { type: 'stopRecording'; name?: string }
   | { type: 'updateConfig'; config: Omit<PortConfig, 'path'> }
-  | { type: 'updateAutoRecord'; enabled: boolean };
+  | { type: 'updateAutoRecord'; enabled: boolean }
+  | { type: 'discardLastRecording'; sessionId: string; sessionName: string }
+  | { type: 'openSession'; sessionId: string };
 
 export class MonitorPanel implements vscode.Disposable {
   public static currentPanels: Map<string, MonitorPanel> = new Map();
@@ -34,6 +37,7 @@ export class MonitorPanel implements vscode.Disposable {
     extensionUri: vscode.Uri,
     portPath: string,
     private readonly sessionRecorder: SessionRecorder,
+    private readonly discardService: SessionDiscardService,
   ) {
     this.panel = panel;
     this.extensionUri = extensionUri;
@@ -84,9 +88,7 @@ export class MonitorPanel implements vscode.Disposable {
                 sessionId: session.id,
                 sessionName: session.name,
               });
-              void vscode.window.showInformationMessage(
-                `Recording saved: ${session.name} (${session.events.length} events)`
-              );
+              this.showRecordingSavedToast(session.id, session.name, session.events.length);
             }
           }).catch((err) => {
             void this.panel.webview.postMessage({
@@ -106,12 +108,17 @@ export class MonitorPanel implements vscode.Disposable {
           .getConfiguration('serialMonitorPro')
           .get<boolean>('autoRecordOnConnect') ?? true;
         if (autoRecord && !this.sessionRecorder.isRecording) {
-          void this.sessionRecorder.startRecording(this.portService).catch((err) => {
-            void this.panel.webview.postMessage({
-              type: 'error',
-              message: `Failed to auto-start recording: ${errMessage(err)}`,
-            });
-          });
+          void (async () => {
+            try {
+              await this.discardService.finalizePending();
+              await this.sessionRecorder.startRecording(this.portService);
+            } catch (err) {
+              void this.panel.webview.postMessage({
+                type: 'error',
+                message: `Failed to auto-start recording: ${errMessage(err)}`,
+              });
+            }
+          })();
         }
       })
     );
@@ -131,6 +138,7 @@ export class MonitorPanel implements vscode.Disposable {
     extensionUri: vscode.Uri,
     portItem: PortTreeItem | string,
     sessionRecorder: SessionRecorder,
+    discardService: SessionDiscardService,
   ): MonitorPanel {
     const portPath = typeof portItem === 'string' ? portItem : portItem.portInfo.path;
 
@@ -151,7 +159,7 @@ export class MonitorPanel implements vscode.Disposable {
       }
     );
 
-    const monitorPanel = new MonitorPanel(panel, extensionUri, portPath, sessionRecorder);
+    const monitorPanel = new MonitorPanel(panel, extensionUri, portPath, sessionRecorder, discardService);
     MonitorPanel.currentPanels.set(portPath, monitorPanel);
     return monitorPanel;
   }
@@ -227,6 +235,7 @@ export class MonitorPanel implements vscode.Disposable {
           return;
         }
         try {
+          await this.discardService.finalizePending();
           await this.sessionRecorder.startRecording(this.portService);
         } catch (err) {
           void this.panel.webview.postMessage({
@@ -246,9 +255,7 @@ export class MonitorPanel implements vscode.Disposable {
               sessionId: session.id,
               sessionName: session.name,
             });
-            void vscode.window.showInformationMessage(
-              `Recording saved: ${session.name} (${session.events.length} events)`
-            );
+            this.showRecordingSavedToast(session.id, session.name, session.events.length);
           }
         } catch (err) {
           void this.panel.webview.postMessage({
@@ -278,7 +285,33 @@ export class MonitorPanel implements vscode.Disposable {
           .update('autoRecordOnConnect', message.enabled, vscode.ConfigurationTarget.Global);
         break;
       }
+
+      case 'discardLastRecording': {
+        await this.discardService.softDelete(message.sessionId, message.sessionName);
+        break;
+      }
+
+      case 'openSession': {
+        await vscode.commands.executeCommand('serialMonitorPro.openPlayback', message.sessionId);
+        break;
+      }
     }
+  }
+
+  private showRecordingSavedToast(sessionId: string, sessionName: string, eventCount: number): void {
+    void vscode.window
+      .showInformationMessage(
+        `Recording saved: ${sessionName} (${eventCount} events)`,
+        'Open',
+        'Discard',
+      )
+      .then((choice) => {
+        if (choice === 'Open') {
+          void vscode.commands.executeCommand('serialMonitorPro.openPlayback', sessionId);
+        } else if (choice === 'Discard') {
+          void this.discardService.softDelete(sessionId, sessionName);
+        }
+      });
   }
 
   private getHtmlForWebview(): string {
