@@ -2,7 +2,7 @@
   "name": "vscode-serial-monitor-pro",
   "displayName": "Serial Monitor Pro",
   "description": "Serial Monitor with timeline recording and audio commentary playback",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "publisher": "millsit",
   "license": "MIT",
   "engines": {
@@ -64,6 +64,12 @@
         "title": "Refresh Sessions",
         "category": "Serial Monitor Pro",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "serialMonitorPro.deleteSession",
+        "title": "Delete Session",
+        "category": "Serial Monitor Pro",
+        "icon": "$(trash)"
       }
     ],
     "viewsContainers": {
@@ -110,6 +116,11 @@
           "command": "serialMonitorPro.openPlayback",
           "when": "view == serialMonitorSessions",
           "group": "inline"
+        },
+        {
+          "command": "serialMonitorPro.deleteSession",
+          "when": "view == serialMonitorSessions && viewItem == recordedSession",
+          "group": "1_modification"
         }
       ]
     },
