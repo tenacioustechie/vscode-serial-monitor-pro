@@ -17,7 +17,9 @@
       "Skill(superpowers:executing-plans)",
       "Skill(superpowers:executing-plans:*)",
       "Skill(superpowers:finishing-a-development-branch)",
-      "Skill(superpowers:finishing-a-development-branch:*)"
+      "Skill(superpowers:finishing-a-development-branch:*)",
+      "Bash(git -C /Users/brian/codeme/vscode-serial-monitor-plus add *)",
+      "Bash(git -C /Users/brian/codeme/vscode-serial-monitor-plus commit -m *)"
     ]
   }
 }
