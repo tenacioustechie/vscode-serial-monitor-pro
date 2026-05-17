@@ -61,3 +61,27 @@ test('serialMonitorPro.autoRecordOnConnect is a boolean setting defaulting to tr
   assert.equal(setting.default, true, 'autoRecordOnConnect must default to true');
   assert.ok(setting.description, 'autoRecordOnConnect must have a description');
 });
+
+test('serialMonitorPro.deleteSession command is contributed with a title', () => {
+  const commands = pkg.contributes?.commands ?? [];
+  const cmd = commands.find((c) => c.command === 'serialMonitorPro.deleteSession');
+  assert.ok(cmd, 'package.json must contribute serialMonitorPro.deleteSession');
+  assert.ok(cmd.title && cmd.title.length > 0, 'deleteSession must have a non-empty title');
+});
+
+test('serialMonitorPro.deleteSession is wired into view/item/context for recordedSession', () => {
+  const menus = pkg.contributes?.menus ?? {};
+  const entries = menus['view/item/context'] ?? [];
+  const entry = entries.find((m) => m.command === 'serialMonitorPro.deleteSession');
+  assert.ok(entry, 'view/item/context must include serialMonitorPro.deleteSession');
+  assert.match(
+    entry.when ?? '',
+    /view\s*==\s*serialMonitorSessions/,
+    'deleteSession menu entry must scope to view == serialMonitorSessions',
+  );
+  assert.match(
+    entry.when ?? '',
+    /viewItem\s*==\s*recordedSession/,
+    'deleteSession menu entry must scope to viewItem == recordedSession',
+  );
+});
